@@ -67,7 +67,7 @@ class SQRLLogin{
 		$html .= '</style>';
 		$html .= '<div class="sqrl-login-wrapper">';
 		$html .= '	<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
-		$html .= '		<img src="images/sqrl-button.png"/>';
+		$html .= '		<img src="/wp-content/plugins/sqrl-login/images/sqrl-button.png"/>';
 		$html .= '	</a>';
 		$html .= '</div>';
 		$html .= '<div class="sqrl-login-wrapper">';
