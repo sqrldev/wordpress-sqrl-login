@@ -1,0 +1,3 @@
+[submodule "phpqrcode"]
+	path = phpqrcode
+	url = ./phpqrcode/
