@@ -1,2 +1,5 @@
-# wordpress-sqrl-login
-Proof of concept sqrl login wordpress plugin
+# WordPress SQRL Login Plugin
+
+Proof of concept SQRL login WordPress plugin
+
+![Preview image](images/wordpress-plugin.png)
