@@ -26,7 +26,61 @@ class SQRLLogin{
         add_action( 'admin_post_nopriv_sqrl_login', array($this, 'loginCallback'));    
         add_action( 'admin_post_sqrl_auth', array($this, 'apiCallback'));
         add_action( 'admin_post_nopriv_sqrl_auth', array($this, 'apiCallback'));    				
+		
+		add_action( 'admin_post_nopriv_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));    				
+		
+		add_action( 'edit_user_profile', array($this, 'associateSQRL') );
+		add_action( 'show_user_profile', array($this, 'associateSQRL') );
 	}
+		
+	function associateSQRL($user) {
+		?>
+		<style>
+			.sqrl-form {
+				margin-top: 20px;
+				padding: 26px 24px 46px;
+				background: white;
+				box-shadow: 0 1px 3px rgba(0,0,0,.13);
+				width: 320px;
+			}
+		</style>
+		<h3>Associate SQRL to profile</h3>
+		<table class="form-table">
+			<tr>
+				<th>
+				</th>
+				<td>
+					<div class="sqrl-form">
+						<?php $this->addToLoginForm(); ?>						
+					</div>
+				</td>
+			</tr>
+		</table>
+		<?php		
+	}
+	
+	
+	function checkIfLoggedInAjax() {
+		$siteURL = "https://uhash.com";
+		header("Access-Control-Allow-Origin: {$siteURL}");
+		header('Access-Control-Allow-Credentials: true');
+		header('Access-Control-Max-Age: 1');    // cache for 1 day
+		header("Access-Control-Allow-Methods: GET, OPTIONS");
+
+		$wp_users = get_users(array(
+			'meta_key'     => 'sqrl_session',
+			'meta_value'   => $_GET['session'],
+			'number'       => 1,
+			'count_total'  => false,
+			'fields'       => 'id',
+		));
+
+		if($wp_users[0]) {
+			echo "true";
+		} else {
+			echo "false";
+		}		
+	}	
 	
 	function generateRandomString($length = 16) {
 		return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) )),1,$length);
@@ -48,34 +102,42 @@ class SQRLLogin{
 		$session = $this->generateRandomString();
 		$nut = $this->generateRandomString();
 		$sqrlURL = 'sqrl://' . $domainName . '/wp-admin/admin-post.php?action=sqrl_auth&nut=' . $nut . '-' . $session;
-		
+				
 		ob_start();
 		QRCode::png($sqrlURL, null);
 		$imageString = base64_encode( ob_get_contents() );
 		ob_end_clean();		
 		$html = '<style>';
-        $html .= '.sqrl-login-wrapper {';
+        $html .= '.sqrl-login-row {';
 		$html .= '    display: flex;';
         $html .= '    flex-direction: row;';
         $html .= '    align-items: center;';
         $html .= '    justify-content: center;';
         $html .= '    width: 100%;';
         $html .= '}';
-        $html .= '.sqrl-login-wrapper div {';
+        $html .= '.sqrl-login-row div {';
 		$html .= '    padding-left: 10px;';
 		$html .= '}';
+        $html .= '.sqrl-login-wrapper {';
+		$html .= '    padding-bottom: 10px;';
+		$html .= '}';		
 		$html .= '</style>';
 		$html .= '<div class="sqrl-login-wrapper">';
-		$html .= '	<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
-		$html .= '		<img src="/wp-content/plugins/sqrl-login/images/sqrl-button.png"/>';
-		$html .= '	</a>';
-		$html .= '</div>';
-		$html .= '<div class="sqrl-login-wrapper">';
-		$html .= '	<img src="data:image/png;base64,' . $imageString . '"/>';
-		$html .= '	<div>';
-		$html .= '		You may also login with SQRL using';
-		$html .= '		any SQRL-equipped smartphone by';
-		$html .= '		scanning this QR code.';
+		$html .= '	<div class="sqrl-login-row">';
+		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
+		$html .= '			<img src="/wp-content/plugins/sqrl-login/images/sqrl-button.png"/>';
+		$html .= '		</a>';
+		$html .= '	</div>';
+		$html .= '	<div class="sqrl-login-row">';
+		$html .= '		<img src="data:image/png;base64,' . $imageString . '"/>';
+		$html .= '		<div>';
+		$html .= '			You may also login with SQRL using';
+		$html .= '			any SQRL-equipped smartphone by';
+		$html .= '			scanning this QR code.';
+		$html .= '		</div>';
+		$html .= '	</div>';
+		$html .= '	<div class="sqrl-login-row">';		
+		$html .= '		<span id="reloadDisplay"></span>';
 		$html .= '	</div>';
 		$html .= '</div>';
 		$html .= '<script type="text/javascript" src="' . plugins_url( 'pagesync.js', __FILE__ ) . '"></script>';
@@ -86,11 +148,15 @@ class SQRLLogin{
     }
 
 	public function loginCallback() {
-		$nutSession = explode('-', $_GET["nut"]);
-
+		$session = $_GET['session'];
+		if(empty($session)) {
+			$nutSession = explode('-', $_GET["nut"]);
+			$session = $nutSession[1];
+		}
+		
 		$wp_users = get_users(array(
 			'meta_key'     => 'sqrl_session',
-			'meta_value'   => $nutSession[1],
+			'meta_value'   => $session,
 			'number'       => 1,
 			'count_total'  => false,
 			'fields'       => 'id',
@@ -100,7 +166,6 @@ class SQRLLogin{
 		wp_set_auth_cookie( $wp_users[0] );
 		
         header("Location: " . get_site_url(), true);
-        die();
 	}
 	
     public function apiCallback() {
@@ -113,7 +178,7 @@ class SQRLLogin{
 		}
 		
 		$result = sodium_crypto_sign_verify_detached ($this->base64url_decode($_POST["ids"]), $_POST["client"] . $_POST["server"] , $this->base64url_decode($client["idk"]) );
-			
+		
 		$serverStr = explode("\r\n", $this->base64url_decode($_POST["server"]));
 		if(count($serverStr) == 1) {
 			foreach (explode("&", $serverStr[0]) as $k => $v) {
@@ -156,6 +221,8 @@ class SQRLLogin{
 			}			
 		}
 		$response[] = "sin=0";
+		
+		header('Content-Type: application/x-www-form-urlencoded');
 			
         echo $this->base64url_encode(implode("\r\n", $response));
     }
@@ -181,7 +248,7 @@ class SQRLLogin{
 		));
 		
 		$nutSession = explode('-', $server["nut"]);
-
+		
 		update_user_meta( $wp_users[0], 'sqrl_session', $nutSession[1] );
 	}	
 	
