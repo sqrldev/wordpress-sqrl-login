@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.0.1
+ * Version:           0.1.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -27,10 +27,13 @@ class SQRLLogin{
         add_action( 'admin_post_sqrl_auth', array($this, 'apiCallback'));
         add_action( 'admin_post_nopriv_sqrl_auth', array($this, 'apiCallback'));    				
 		
+		add_action( 'admin_post_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));    				
 		add_action( 'admin_post_nopriv_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));    				
 		
 		add_action( 'edit_user_profile', array($this, 'associateSQRL') );
 		add_action( 'show_user_profile', array($this, 'associateSQRL') );
+
+		add_action( 'admin_post_sqrl_disassociate', array($this, 'disAssociateUser') );		
 	}
 		
 	function associateSQRL($user) {
@@ -45,18 +48,36 @@ class SQRLLogin{
 			}
 		</style>
 		<h3>Associate SQRL to profile</h3>
-		<table class="form-table">
-			<tr>
-				<th>
-				</th>
-				<td>
-					<div class="sqrl-form">
-						<?php $this->addToLoginForm(); ?>						
-					</div>
-				</td>
-			</tr>
-		</table>
 		<?php		
+		if(get_user_meta($user->id, 'idk', true)) {
+			?>
+			<table class="form-table">
+				<tr>
+					<th>
+					</th>
+					<td>
+						<div class="sqrl-form">							
+							<a href="/wp-admin/admin-post.php?action=sqrl_disassociate">Disassociate SQRL identity</a>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<?php
+		} else {
+			?>
+			<table class="form-table">
+				<tr>
+					<th>
+					</th>
+					<td>
+						<div class="sqrl-form">
+							<?php $this->addToLoginForm($user); ?>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<?php			
+		}
 	}
 	
 	
@@ -86,7 +107,7 @@ class SQRLLogin{
 		return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) )),1,$length);
 	}	
 	
-    public function addToLoginForm() {
+    public function addToLoginForm($user = false) {
         if (get_option( 'users_can_register' )) {
             $button_label = __('Login or Register with SQRL', 'sqrl');
         } else {
@@ -102,7 +123,11 @@ class SQRLLogin{
 		$session = $this->generateRandomString();
 		$nut = $this->generateRandomString();
 		$sqrlURL = 'sqrl://' . $domainName . '/wp-admin/admin-post.php?action=sqrl_auth&nut=' . $nut . '-' . $session;
-				
+
+		if($user) {
+			set_transient($session, $user->id, 15 * 60);
+		}		
+		
 		ob_start();
 		QRCode::png($sqrlURL, null);
 		$imageString = base64_encode( ob_get_contents() );
@@ -166,7 +191,7 @@ class SQRLLogin{
 		wp_set_auth_cookie( $wp_users[0] );
 		
         header("Location: " . get_site_url(), true);
-	}
+	}	
 	
     public function apiCallback() {
 		$clientStr = explode("\r\n", $this->base64url_decode($_POST["client"]));
@@ -205,13 +230,20 @@ class SQRLLogin{
 			if($this->accountPresent($client)) {
 				$response[] = "tif=5";
 			} else {
-				$response[] = "tif=4";				
+				$response[] = "tif=4";
 			}
 		} else {
 			$response[] = "tif=5";
 
-			if(!$this->accountPresent($client)) {
-				$this->createUser($client);
+			if(!$this->accountPresent($client)) {				
+				$user = get_transient($nutSession[1]);				
+				delete_transient($nutSession[1]);
+		
+				if($user) {	
+					$this->associateUser($user, $client, $nutSession[1]);
+				} else {
+					$this->createUser($client, $nutSession[1]);
+				}
 			}
 
 			$this->addUserSession($client, $server);
@@ -227,17 +259,35 @@ class SQRLLogin{
         echo $this->base64url_encode(implode("\r\n", $response));
     }
 
-	private function createUser($client) {
+	private function createUser($client, $session) {
 		$new_user = wp_create_user($this->get_random_unique_username('user_'), wp_generate_password(), 'nobody@localhost');
 		
 		update_user_meta( $new_user, 'idk', $client['idk'] );
 		update_user_meta( $new_user, 'suk', $client['suk'] );
 		update_user_meta( $new_user, 'vuk', $client['vuk'] );
 		
-		$nutSession = explode('-', $server["nut"]);
-		update_user_meta( $new_user, 'sqrl_session', $nutSession[1] );
+		update_user_meta( $new_user, 'sqrl_session', $session );
 	}
 
+	private function associateUser($user, $client, $session) {		
+		update_user_meta( $user, 'idk', $client['idk'] );
+		update_user_meta( $user, 'suk', $client['suk'] );
+		update_user_meta( $user, 'vuk', $client['vuk'] );
+		
+		update_user_meta( $user, 'sqrl_session', $session );
+	}
+	
+	public function disAssociateUser() {
+		$user = wp_get_current_user();		
+		
+		delete_user_meta( $user->id, 'idk');
+		delete_user_meta( $user->id, 'suk');
+		delete_user_meta( $user->id, 'vuk');
+		delete_user_meta( $user->id, 'sqrl_session');
+		
+		header("Location: /wp-admin/profile.php", true);
+	}	
+	
 	private function addUserSession($client, $server) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
