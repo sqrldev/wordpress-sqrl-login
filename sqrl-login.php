@@ -166,51 +166,51 @@ class SQRLLogin{
 		$html .= '	<div class="sqrl-login-row">';
 		$html .= '	    <a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">';
 		$html .= '		   <img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="60" />';
-			$html .= '	    </a>';
-			$html .= '	    <a href="https://www.grc.com/files/sqrl.exe">';
-			$html .= '		   <img src="' . plugins_url( 'images/microsoft.png', __FILE__ ) . '" alt="Get it for Windows" height="42" />';
-			$html .= '	    </a>';
-			$html .= '	</div>';
-			$html .= '</div>';
-			$html .= '<script type="text/javascript" src="' . plugins_url( 'pagesync.js', __FILE__ ) . '"></script>';
-			$html .= '<script type="text/javascript" src="' . plugins_url( 'reload.js', __FILE__ ) . '"></script>';
-			$html .= '<script type="text/javascript">window.sqrlSession = "' . $session . '"</script>';
+		$html .= '	    </a>';
+		$html .= '	    <a href="https://www.grc.com/files/sqrl.exe">';
+		$html .= '		   <img src="' . plugins_url( 'images/microsoft.png', __FILE__ ) . '" alt="Get it for Windows" height="42" />';
+		$html .= '	    </a>';
+		$html .= '	</div>';
+		$html .= '</div>';
+		$html .= '<script type="text/javascript" src="' . plugins_url( 'pagesync.js', __FILE__ ) . '"></script>';
+		$html .= '<script type="text/javascript" src="' . plugins_url( 'reload.js', __FILE__ ) . '"></script>';
+		$html .= '<script type="text/javascript">window.sqrlSession = "' . $session . '"</script>';
 
 		echo $html;
-	    }
+	}
 
-		public function loginCallback() {
-			$session = $_GET['session'];
-			if(empty($session)) {
-				$nutSession = explode('-', $_GET["nut"]);
-				$session = $nutSession[1];
-			}
-
-			$wp_users = get_users(array(
-				'meta_key'     => 'sqrl_session',
-				'meta_value'   => $session,
-				'number'       => 1,
-				'count_total'  => false,
-				'fields'       => 'id',
-			));
-
-			delete_user_meta( $wp_users[0], 'sqrl_session');
-			wp_set_auth_cookie( $wp_users[0] );
-
-		header("Location: " . get_site_url(), true);
+	public function loginCallback() {
+		$session = $_GET['session'];
+		if(empty($session)) {
+			$nutSession = explode('-', $_GET["nut"]);
+			$session = $nutSession[1];
 		}
 
-	    public function apiCallback() {
-			$clientStr = explode("\r\n", $this->base64url_decode($_POST["client"]));
+		$wp_users = get_users(array(
+			'meta_key'     => 'sqrl_session',
+			'meta_value'   => $session,
+			'number'       => 1,
+			'count_total'  => false,
+			'fields'       => 'id',
+		));
 
-			$client = array();
-			foreach ($clientStr as $k => $v) {
-				$p = explode("=", $v);
-				$client[$p[0]] = $p[1];
-			}
-			
-			error_log(print_r($client, true));	
-			
+		delete_user_meta( $wp_users[0], 'sqrl_session');
+		wp_set_auth_cookie( $wp_users[0] );
+
+		header("Location: " . get_site_url(), true);
+	}
+
+	public function apiCallback() {
+		$clientStr = explode("\r\n", $this->base64url_decode($_POST["client"]));
+
+		$client = array();
+		foreach ($clientStr as $k => $v) {
+			$p = explode("=", $v);
+			$client[$p[0]] = $p[1];
+		}
+
+		error_log(print_r($client, true));
+
 		$result = sodium_crypto_sign_verify_detached ($this->base64url_decode($_POST["ids"]), $_POST["client"] . $_POST["server"] , $this->base64url_decode($client["idk"]) );
 
 		$serverStr = explode("\r\n", $this->base64url_decode($_POST["server"]));
@@ -229,14 +229,14 @@ class SQRLLogin{
 
 		$nutSession = explode('-', $server["nut"]);
 		$nutSession[0] = $this->generateRandomString();
-		
+
 		$options = array();
 		foreach (explode("~", $client["opt"]) as $v) {
 			$options[$v] = true;
 		}
-		
+
 		$retVal = $options["noiptest"] ? 0 : 4;
-		
+
 		$response = array();
 
 		$response[] = "ver=1";
@@ -249,10 +249,10 @@ class SQRLLogin{
 					$response[] = "suk=" . $this->getServerUnlockKey($client);
 				}
 			}
-		} else if($client['cmd'] == 'ident') { 
-			if(!$this->accountPresent($client)) {				
+		} else if($client['cmd'] == 'ident') {
+			if(!$this->accountPresent($client)) {
 				$retVal += 1;
-				$user = get_transient($nutSession[1]);				
+				$user = get_transient($nutSession[1]);
 				delete_transient($nutSession[1]);
 
 				if($user) {
@@ -268,16 +268,16 @@ class SQRLLogin{
 				$response[] = "can=" . get_site_url() . "?q=darn";
 			}
 		} else {
-			error_log(print_r($client, true));			
+			error_log(print_r($client, true));
 		}
-				
+
 		$response[] = "tif=" . $retVal;
 		$response[] = "sin=0";
 
 		header('Content-Type: application/x-www-form-urlencoded');
-			
+
 		error_log(print_r($response, true));
-		
+
         echo $this->base64url_encode(implode("\r\n", $response));
     }
 
@@ -322,8 +322,8 @@ class SQRLLogin{
 		$nutSession = explode('-', $server["nut"]);
 
 		update_user_meta( $wp_users[0], 'sqrl_session', $nutSession[1] );
-	}	
-	
+	}
+
 	private function getServerUnlockKey($client) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
@@ -332,11 +332,11 @@ class SQRLLogin{
 			'count_total'  => false,
 			'fields'       => 'id',
 		));
-		
+
 		return get_user_meta($wp_users[0], "suk", true);
-	}	
-	
-	
+	}
+
+
 	private function accountPresent($client) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
