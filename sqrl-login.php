@@ -14,28 +14,28 @@
 include "phpqrcode/qrlib.php";
 
 class SQRLLogin{
-	
+
     /**
      * SQRLLogin constructor.
      */
     public function __construct()
     {
 		add_action('login_form', array($this, 'addToLoginForm'));
-		
+
 		add_action( 'admin_post_sqrl_login', array($this, 'loginCallback'));
-        add_action( 'admin_post_nopriv_sqrl_login', array($this, 'loginCallback'));    
+        add_action( 'admin_post_nopriv_sqrl_login', array($this, 'loginCallback'));
         add_action( 'admin_post_sqrl_auth', array($this, 'apiCallback'));
-        add_action( 'admin_post_nopriv_sqrl_auth', array($this, 'apiCallback'));    				
-		
-		add_action( 'admin_post_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));    				
-		add_action( 'admin_post_nopriv_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));    				
-		
+        add_action( 'admin_post_nopriv_sqrl_auth', array($this, 'apiCallback'));
+
+		add_action( 'admin_post_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));
+		add_action( 'admin_post_nopriv_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));
+
 		add_action( 'edit_user_profile', array($this, 'associateSQRL') );
 		add_action( 'show_user_profile', array($this, 'associateSQRL') );
 
-		add_action( 'admin_post_sqrl_disassociate', array($this, 'disAssociateUser') );		
+		add_action( 'admin_post_sqrl_disassociate', array($this, 'disAssociateUser') );
 	}
-		
+
 	function associateSQRL($user) {
 		?>
 		<style>
@@ -48,7 +48,7 @@ class SQRLLogin{
 			}
 		</style>
 		<h3>Associate SQRL to profile</h3>
-		<?php		
+		<?php
 		if(get_user_meta($user->id, 'idk', true)) {
 			?>
 			<table class="form-table">
@@ -56,7 +56,7 @@ class SQRLLogin{
 					<th>
 					</th>
 					<td>
-						<div class="sqrl-form">							
+						<div class="sqrl-form">
 							<a href="/wp-admin/admin-post.php?action=sqrl_disassociate">Disassociate SQRL identity</a>
 						</div>
 					</td>
@@ -76,11 +76,11 @@ class SQRLLogin{
 					</td>
 				</tr>
 			</table>
-			<?php			
+			<?php
 		}
 	}
-	
-	
+
+
 	function checkIfLoggedInAjax() {
 		$siteURL = "https://uhash.com";
 		header("Access-Control-Allow-Origin: {$siteURL}");
@@ -100,13 +100,13 @@ class SQRLLogin{
 			echo "true";
 		} else {
 			echo "false";
-		}		
-	}	
-	
+		}
+	}
+
 	function generateRandomString($length = 16) {
 		return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) )),1,$length);
-	}	
-	
+	}
+
     public function addToLoginForm($user = false) {
         if (get_option( 'users_can_register' )) {
             $button_label = __('Login or Register with SQRL', 'sqrl');
@@ -119,19 +119,19 @@ class SQRLLogin{
 		if(count($siteUrl) == 2) {
 			$domainName = $siteUrl[1];
 		}
-		
+
 		$session = $this->generateRandomString();
 		$nut = $this->generateRandomString();
 		$sqrlURL = 'sqrl://' . $domainName . '/wp-admin/admin-post.php?action=sqrl_auth&nut=' . $nut . '-' . $session;
 
 		if($user) {
 			set_transient($session, $user->id, 15 * 60);
-		}		
-		
+		}
+
 		ob_start();
 		QRCode::png($sqrlURL, null);
 		$imageString = base64_encode( ob_get_contents() );
-		ob_end_clean();		
+		ob_end_clean();
 		$html = '<style>';
         $html .= '.sqrl-login-row {';
 		$html .= '    display: flex;';
@@ -145,7 +145,7 @@ class SQRLLogin{
 		$html .= '}';
         $html .= '.sqrl-login-wrapper {';
 		$html .= '    padding-bottom: 10px;';
-		$html .= '}';		
+		$html .= '}';
 		$html .= '</style>';
 		$html .= '<div class="sqrl-login-wrapper">';
 		$html .= '	<div class="sqrl-login-row">';
@@ -161,14 +161,22 @@ class SQRLLogin{
 		$html .= '			scanning this QR code.';
 		$html .= '		</div>';
 		$html .= '	</div>';
-		$html .= '	<div class="sqrl-login-row">';		
+		$html .= '	<div class="sqrl-login-row">';
 		$html .= '		<span id="reloadDisplay"></span>';
+		$html .= '	</div>';
+		$html .= '	<div class="sqrl-login-row">';
+		$html .= '	    <a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">';
+		$html .= '		   <img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80" />';
+		$html .= '	    </a>';
+		$html .= '	    <a href="https://www.grc.com/files/sqrl.exe">';
+		$html .= '		   <img src="images/microsoft.png" alt="Get it for Windows" height="80" />';
+		$html .= '	    </a>';
 		$html .= '	</div>';
 		$html .= '</div>';
 		$html .= '<script type="text/javascript" src="' . plugins_url( 'pagesync.js', __FILE__ ) . '"></script>';
 		$html .= '<script type="text/javascript" src="' . plugins_url( 'reload.js', __FILE__ ) . '"></script>';
 		$html .= '<script type="text/javascript">window.sqrlSession = "' . $session . '"</script>';
-				
+
         echo $html;
     }
 
@@ -178,7 +186,7 @@ class SQRLLogin{
 			$nutSession = explode('-', $_GET["nut"]);
 			$session = $nutSession[1];
 		}
-		
+
 		$wp_users = get_users(array(
 			'meta_key'     => 'sqrl_session',
 			'meta_value'   => $session,
@@ -189,10 +197,10 @@ class SQRLLogin{
 
 		delete_user_meta( $wp_users[0], 'sqrl_session');
 		wp_set_auth_cookie( $wp_users[0] );
-		
+
         header("Location: " . get_site_url(), true);
-	}	
-	
+	}
+
     public function apiCallback() {
 		$clientStr = explode("\r\n", $this->base64url_decode($_POST["client"]));
 
@@ -201,9 +209,9 @@ class SQRLLogin{
 			$p = explode("=", $v);
 			$client[$p[0]] = $p[1];
 		}
-		
+
 		$result = sodium_crypto_sign_verify_detached ($this->base64url_decode($_POST["ids"]), $_POST["client"] . $_POST["server"] , $this->base64url_decode($client["idk"]) );
-		
+
 		$serverStr = explode("\r\n", $this->base64url_decode($_POST["server"]));
 		if(count($serverStr) == 1) {
 			foreach (explode("&", $serverStr[0]) as $k => $v) {
@@ -215,14 +223,14 @@ class SQRLLogin{
 			foreach ($serverStr as $k => $v) {
 				$p = explode("=", $v);
 				$server[$p[0]] = $p[1];
-			}			
+			}
 		}
-					
+
 		$nutSession = explode('-', $server["nut"]);
 		$nutSession[0] = $this->generateRandomString();
-		
+
 		$response = array();
-		
+
 		$response[] = "ver=1";
 		$response[] = "nut=" . $nutSession[0] . '-' . $nutSession[1];
 		$response[] = "qry=/wp-admin/admin-post.php?action=sqrl_auth&nut=" . $nutSession[0] . '-' . $nutSession[1];
@@ -235,11 +243,11 @@ class SQRLLogin{
 		} else {
 			$response[] = "tif=5";
 
-			if(!$this->accountPresent($client)) {				
-				$user = get_transient($nutSession[1]);				
+			if(!$this->accountPresent($client)) {
+				$user = get_transient($nutSession[1]);
 				delete_transient($nutSession[1]);
-		
-				if($user) {	
+
+				if($user) {
 					$this->associateUser($user, $client, $nutSession[1]);
 				} else {
 					$this->createUser($client, $nutSession[1]);
@@ -250,44 +258,44 @@ class SQRLLogin{
 			if(strpos($client['opt'], 'cps') !== false) {
 				$response[] = "url=" . get_site_url() . "/wp-admin/admin-post.php?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1];
 				$response[] = "can=" . get_site_url() . "?q=darn";
-			}			
+			}
 		}
 		$response[] = "sin=0";
-		
+
 		header('Content-Type: application/x-www-form-urlencoded');
-			
+
         echo $this->base64url_encode(implode("\r\n", $response));
     }
 
 	private function createUser($client, $session) {
 		$new_user = wp_create_user($this->get_random_unique_username('user_'), wp_generate_password(), 'nobody@localhost');
-		
+
 		update_user_meta( $new_user, 'idk', $client['idk'] );
 		update_user_meta( $new_user, 'suk', $client['suk'] );
 		update_user_meta( $new_user, 'vuk', $client['vuk'] );
-		
+
 		update_user_meta( $new_user, 'sqrl_session', $session );
 	}
 
-	private function associateUser($user, $client, $session) {		
+	private function associateUser($user, $client, $session) {
 		update_user_meta( $user, 'idk', $client['idk'] );
 		update_user_meta( $user, 'suk', $client['suk'] );
 		update_user_meta( $user, 'vuk', $client['vuk'] );
-		
+
 		update_user_meta( $user, 'sqrl_session', $session );
 	}
-	
+
 	public function disAssociateUser() {
-		$user = wp_get_current_user();		
-		
+		$user = wp_get_current_user();
+
 		delete_user_meta( $user->id, 'idk');
 		delete_user_meta( $user->id, 'suk');
 		delete_user_meta( $user->id, 'vuk');
 		delete_user_meta( $user->id, 'sqrl_session');
-		
+
 		header("Location: /wp-admin/profile.php", true);
-	}	
-	
+	}
+
 	private function addUserSession($client, $server) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
@@ -296,13 +304,13 @@ class SQRLLogin{
 			'count_total'  => false,
 			'fields'       => 'id',
 		));
-		
+
 		$nutSession = explode('-', $server["nut"]);
-		
+
 		update_user_meta( $wp_users[0], 'sqrl_session', $nutSession[1] );
-	}	
-	
-	
+	}
+
+
 	private function accountPresent($client) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
@@ -311,13 +319,13 @@ class SQRLLogin{
 			'count_total'  => false,
 			'fields'       => 'id',
 		));
-		
+
 		if(empty($wp_users[0])) {
 			return false;
 		}
 		return true;
-	}	
-	
+	}
+
 	function get_random_unique_username( $prefix = '' ){
 		$user_exists = 1;
 		do {
@@ -326,7 +334,7 @@ class SQRLLogin{
 	   } while( $user_exists > 0 );
 	   return $prefix . $rnd_str;
 	}
-	
+
 	function base64url_encode($data, $pad = null) {
 		$data = str_replace(array('+', '/'), array('-', '_'), base64_encode($data));
 		if (!$pad) {
@@ -336,8 +344,8 @@ class SQRLLogin{
 	}
 	function base64url_decode($data) {
 		return base64_decode(str_replace(array('-', '_'), array('+', '/'), $data));
-	}	
-	
+	}
+
 }
 
 new SQRLLogin();
