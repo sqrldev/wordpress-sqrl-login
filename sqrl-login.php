@@ -34,6 +34,8 @@ class SQRLLogin{
 	}
 
 	function associateSQRL($user) {
+		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
+
 		?>
 		<style>
 			.sqrl-form {
@@ -54,7 +56,7 @@ class SQRLLogin{
 					</th>
 					<td>
 						<div class="sqrl-form">
-							<a href="/wp-admin/admin-post.php?action=sqrl_disassociate">Disassociate SQRL identity</a>
+							<a href="<?php echo $adminPostPath ?>?action=sqrl_disassociate">Disassociate SQRL identity</a>
 						</div>
 					</td>
 				</tr>
@@ -111,6 +113,8 @@ class SQRLLogin{
             $button_label = __('Login with SQRL', 'sqrl');
         }
 
+		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
+		
 		$siteUrl = explode("://", get_site_url());
 		$domainName = $siteUrl[0];
 		if(count($siteUrl) == 2) {
@@ -119,7 +123,7 @@ class SQRLLogin{
 
 		$session = $this->generateRandomString();
 		$nut = $this->generateRandomString();
-		$sqrlURL = 'sqrl://' . $domainName . '/wp-admin/admin-post.php?action=sqrl_auth&nut=' . $nut . '-' . $session;
+		$sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . '-' . $session;
 
 		if($user) {
 			set_transient($session, $user->id, 15 * 60);
@@ -202,6 +206,8 @@ class SQRLLogin{
 			$p = explode("=", $v);
 			$client[$p[0]] = $p[1];
 		}
+		
+		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
 		error_log(print_r($client, true));
 
@@ -235,7 +241,7 @@ class SQRLLogin{
 
 		$response[] = "ver=1";
 		$response[] = "nut=" . $nutSession[0] . '-' . $nutSession[1];
-		$response[] = "qry=/wp-admin/admin-post.php?action=sqrl_auth&nut=" . $nutSession[0] . '-' . $nutSession[1];
+		$response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nutSession[0] . '-' . $nutSession[1];
 		if($client['cmd'] == 'query') {
 			if($this->accountPresent($client)) {
 				$retVal += 1;
@@ -258,8 +264,8 @@ class SQRLLogin{
 
 			$this->addUserSession($client, $server);
 			if(strpos($client['opt'], 'cps') !== false) {
-				$response[] = "url=" . get_site_url() . "/wp-admin/admin-post.php?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1];
-				$response[] = "can=" . get_site_url() . "?q=darn";
+				$response[] = "url=" . get_site_url() . $adminPostPath . "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1];
+				$response[] = "can=" . get_site_url() . "?q=canceled";
 			}
 		} else {
 			error_log(print_r($client, true));
