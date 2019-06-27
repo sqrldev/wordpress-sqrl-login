@@ -2,4 +2,4 @@
 
 Proof of concept SQRL login WordPress plugin
 
-![Preview image](images/wordpress-plugin.png)
+![Preview image](assets/screenshot-1.png)
