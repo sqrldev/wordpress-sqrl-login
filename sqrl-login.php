@@ -11,8 +11,6 @@
  * GitHub Plugin URI: http://github.com/kalaspuffar/wordpress-sqrl
  */
 
-include "phpqrcode/qrlib.php";
-
 class SQRLLogin{
 
     /**
@@ -127,10 +125,6 @@ class SQRLLogin{
 			set_transient($session, $user->id, 15 * 60);
 		}
 
-		ob_start();
-		QRCode::png($sqrlURL, null);
-		$imageString = base64_encode( ob_get_contents() );
-		ob_end_clean();
 		$html = '<style>';
         $html .= '.sqrl-login-row {';
 		$html .= '    display: flex;';
@@ -149,11 +143,11 @@ class SQRLLogin{
 		$html .= '<div class="sqrl-login-wrapper">';
 		$html .= '	<div class="sqrl-login-row">';
 		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
-		$html .= '			<img src="/wp-content/plugins/sqrl-login/images/sqrl-button.png"/>';
+		$html .= '			<img src="' . plugins_url( 'images/sqrl-button.png', __FILE__ ) . '"/>';
 		$html .= '		</a>';
 		$html .= '	</div>';
 		$html .= '	<div class="sqrl-login-row">';
-		$html .= '		<img src="data:image/png;base64,' . $imageString . '"/>';
+		$html .= '		<img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chld=M|0&chl=' . urlencode($sqrlURL) . '"/>';
 		$html .= '		<div>';
 		$html .= '			You may also login with SQRL using';
 		$html .= '			any SQRL-equipped smartphone by';
