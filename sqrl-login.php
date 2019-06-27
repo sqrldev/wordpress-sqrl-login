@@ -122,7 +122,7 @@ class SQRLLogin{
 
 		$html .= '<div class="sqrl-login-wrapper">';
 		$html .= '	<div class="sqrl-login-row">';
-		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
+		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" data-session="' . $session . '" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
 		$html .= '			<img src="' . plugins_url( 'images/sqrl-button.png', __FILE__ ) . '"/>';
 		$html .= '		</a>';
 		$html .= '	</div>';
@@ -150,7 +150,6 @@ class SQRLLogin{
 		wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
 		wp_enqueue_script('reload', plugin_dir_url(__FILE__).'reload.js');
 		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
-		wp_add_inline_script('session', 'window.sqrlSession = "' . $session . '";');
 
 		echo $html;
 	}
