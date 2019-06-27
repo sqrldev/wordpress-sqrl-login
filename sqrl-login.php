@@ -80,7 +80,7 @@ class SQRLLogin{
 
 		$wp_users = get_users(array(
 			'meta_key'     => 'sqrl_session',
-			'meta_value'   => $_GET['session'],
+			'meta_value'   => sanitize_text_field($_GET['session']),
 			'number'       => 1,
 			'count_total'  => false,
 			'fields'       => 'id',
@@ -163,7 +163,7 @@ class SQRLLogin{
 
 		$wp_users = get_users(array(
 			'meta_key'     => 'sqrl_session',
-			'meta_value'   => $session,
+			'meta_value'   => sanitize_text_field($session),
 			'number'       => 1,
 			'count_total'  => false,
 			'fields'       => 'id',
@@ -256,20 +256,15 @@ class SQRLLogin{
 
 	private function createUser($client, $session) {
 		$new_user = wp_create_user($this->get_random_unique_username('user_'), wp_generate_password(), 'nobody@localhost');
-
-		update_user_meta( $new_user, 'idk', $client['idk'] );
-		update_user_meta( $new_user, 'suk', $client['suk'] );
-		update_user_meta( $new_user, 'vuk', $client['vuk'] );
-
-		update_user_meta( $new_user, 'sqrl_session', $session );
+		associateUser($new_user);
 	}
 
 	private function associateUser($user, $client, $session) {
-		update_user_meta( $user, 'idk', $client['idk'] );
-		update_user_meta( $user, 'suk', $client['suk'] );
-		update_user_meta( $user, 'vuk', $client['vuk'] );
+		update_user_meta( $new_user, 'idk', sanitize_text_field($client['idk']) );
+		update_user_meta( $new_user, 'suk', sanitize_text_field($client['suk']) );
+		update_user_meta( $new_user, 'vuk', sanitize_text_field($client['vuk']) );
 
-		update_user_meta( $user, 'sqrl_session', $session );
+		update_user_meta( $new_user, 'sqrl_session', sanitize_text_field($session) );
 	}
 
 	public function disAssociateUser() {
@@ -286,7 +281,7 @@ class SQRLLogin{
 	private function addUserSession($client, $server) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
-			'meta_value'   => $client['idk'],
+			'meta_value'   => sanitize_text_field($client['idk']),
 			'number'       => 1,
 			'count_total'  => false,
 			'fields'       => 'id',
@@ -300,7 +295,7 @@ class SQRLLogin{
 	private function getServerUnlockKey($client) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
-			'meta_value'   => $client['idk'],
+			'meta_value'   => sanitize_text_field($client['idk']),
 			'number'       => 1,
 			'count_total'  => false,
 			'fields'       => 'id',
@@ -313,7 +308,7 @@ class SQRLLogin{
 	private function accountPresent($client) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
-			'meta_value'   => $client['idk'],
+			'meta_value'   => sanitize_text_field($client['idk']),
 			'number'       => 1,
 			'count_total'  => false,
 			'fields'       => 'id',
