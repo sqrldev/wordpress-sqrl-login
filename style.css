@@ -1,0 +1,23 @@
+.sqrl-form {
+    margin-top: 20px;
+    padding: 26px 24px 46px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,.13);
+    width: 320px;
+}
+
+.sqrl-login-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.sqrl-login-row div {
+    padding-left: 10px;
+}
+
+.sqrl-login-wrapper {
+    padding-bottom: 10px;
+}

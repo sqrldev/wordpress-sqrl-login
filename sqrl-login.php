@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.1.0
+ * Version:           0.2.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -37,15 +37,6 @@ class SQRLLogin{
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
 		?>
-		<style>
-			.sqrl-form {
-				margin-top: 20px;
-				padding: 26px 24px 46px;
-				background: white;
-				box-shadow: 0 1px 3px rgba(0,0,0,.13);
-				width: 320px;
-			}
-		</style>
 		<h3>Associate SQRL to profile</h3>
 		<?php
 		if(get_user_meta($user->id, 'idk', true)) {
@@ -114,7 +105,7 @@ class SQRLLogin{
         }
 
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
-		
+
 		$siteUrl = explode("://", get_site_url());
 		$domainName = $siteUrl[0];
 		if(count($siteUrl) == 2) {
@@ -129,21 +120,6 @@ class SQRLLogin{
 			set_transient($session, $user->id, 15 * 60);
 		}
 
-		$html = '<style>';
-        $html .= '.sqrl-login-row {';
-		$html .= '    display: flex;';
-        $html .= '    flex-direction: row;';
-        $html .= '    align-items: center;';
-        $html .= '    justify-content: center;';
-        $html .= '    width: 100%;';
-        $html .= '}';
-        $html .= '.sqrl-login-row div {';
-		$html .= '    padding-left: 10px;';
-		$html .= '}';
-        $html .= '.sqrl-login-wrapper {';
-		$html .= '    padding-bottom: 10px;';
-		$html .= '}';
-		$html .= '</style>';
 		$html .= '<div class="sqrl-login-wrapper">';
 		$html .= '	<div class="sqrl-login-row">';
 		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
@@ -170,9 +146,11 @@ class SQRLLogin{
 		$html .= '	    </a>';
 		$html .= '	</div>';
 		$html .= '</div>';
-		$html .= '<script type="text/javascript" src="' . plugins_url( 'pagesync.js', __FILE__ ) . '"></script>';
-		$html .= '<script type="text/javascript" src="' . plugins_url( 'reload.js', __FILE__ ) . '"></script>';
-		$html .= '<script type="text/javascript">window.sqrlSession = "' . $session . '"</script>';
+
+		wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
+		wp_enqueue_script('reload', plugin_dir_url(__FILE__).'reload.js');
+		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
+		wp_add_inline_script('session', 'window.sqrlSession = "' . $session . '";');
 
 		echo $html;
 	}
@@ -206,10 +184,8 @@ class SQRLLogin{
 			$p = explode("=", $v);
 			$client[$p[0]] = $p[1];
 		}
-		
-		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
-		error_log(print_r($client, true));
+		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
 		$result = sodium_crypto_sign_verify_detached ($this->base64url_decode($_POST["ids"]), $_POST["client"] . $_POST["server"] , $this->base64url_decode($client["idk"]) );
 
@@ -275,8 +251,6 @@ class SQRLLogin{
 		$response[] = "sin=0";
 
 		header('Content-Type: application/x-www-form-urlencoded');
-
-		error_log(print_r($response, true));
 
         echo $this->base64url_encode(implode("\r\n", $response));
     }

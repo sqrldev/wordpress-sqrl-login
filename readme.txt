@@ -31,4 +31,14 @@ Add and enable
 1. Login screen with enabled SQRL Login
 
 == Changelog ==
+
+Version 0.2.0
+Improvements to meet WordPress plugin guidelines.
+
+Version 0.1.0
+Clean up and working towards a usable plugin to login
+
+Version 0.0.1
+Proof of concept
+
 == Upgrade Notice ==
