@@ -148,12 +148,12 @@ class SQRLLogin{
 		$html .= '</div>';
 
 		wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
-		wp_enqueue_script('reload', plugin_dir_url(__FILE__).'reload.js');
-
+		wp_register_script('reload', plugin_dir_url(__FILE__).'reload.js');
 		wp_localize_script('reload', 'sqrlReload', array(
 			'adminURL' => admin_url('admin-post.php'),
-			'session' => plugins_url(),
+			'session' => $session,
 		));
+		wp_enqueue_script('reload');
 
 		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
 
