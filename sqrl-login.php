@@ -122,7 +122,7 @@ class SQRLLogin{
 
 		$html .= '<div class="sqrl-login-wrapper">';
 		$html .= '	<div class="sqrl-login-row">';
-		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" data-session="' . $session . '" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
+		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
 		$html .= '			<img src="' . plugins_url( 'images/sqrl-button.png', __FILE__ ) . '"/>';
 		$html .= '		</a>';
 		$html .= '	</div>';
@@ -139,7 +139,7 @@ class SQRLLogin{
 		$html .= '	</div>';
 		$html .= '	<div class="sqrl-login-row">';
 		$html .= '	    <a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">';
-		$html .= '		   <img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="60" />';
+		$html .= '		   <img src="' . plugins_url( 'images/en_badge_web_generic.png', __FILE__ ) . '" alt="Get it on Google Play" height="60" />';
 		$html .= '	    </a>';
 		$html .= '	    <a href="https://www.grc.com/files/sqrl.exe">';
 		$html .= '		   <img src="' . plugins_url( 'images/microsoft.png', __FILE__ ) . '" alt="Get it for Windows" height="42" />';
@@ -149,6 +149,12 @@ class SQRLLogin{
 
 		wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
 		wp_enqueue_script('reload', plugin_dir_url(__FILE__).'reload.js');
+
+		wp_localize_script('reload', 'sqrlReload', array(
+			'adminURL' => admin_url('admin-post.php'),
+			'session' => plugins_url(),
+		));
+
 		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
 
 		echo $html;
@@ -275,7 +281,7 @@ class SQRLLogin{
 		delete_user_meta( $user->id, 'vuk');
 		delete_user_meta( $user->id, 'sqrl_session');
 
-		header("Location: /wp-admin/profile.php", true);
+		header("Location: " . admin_url('profile.php'), true);
 	}
 
 	private function addUserSession($client, $server) {

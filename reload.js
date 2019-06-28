@@ -4,18 +4,17 @@ setInterval(function() {
 var countDown = 5;
 
 setInterval(function() {
-	var sqrlSession = document.getElementById('sqrl').dataset.session;
 	document.getElementById('reloadDisplay').innerHTML = 'Will look for QR Login in ' + countDown;
 	if(countDown <= 0) {
-		fetch(window.location.origin + '/wp-admin/admin-post.php?action=sqrl_check_login&session=' + sqrlSession)
-			.then((res) => {	
+		fetch(sqrlReload.adminUrl + '?action=sqrl_check_login&session=' + sqrlReload.session)
+			.then((res) => {
 				return res.text();
 			})
 	    	.then((body) => {
 				if(body == 'true') {
-					window.location.href = window.location.origin + '/wp-admin/admin-post.php?action=sqrl_login&session=' + sqrlSession;
-				}		
-	    	});		
+					window.location.href = sqrlReload.adminUrl + '?action=sqrl_login&session=' + sqrlReload.session;
+				}
+	    	});
 		countDown = 6;
 	}
 	countDown--;
