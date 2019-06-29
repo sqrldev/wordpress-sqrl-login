@@ -160,7 +160,19 @@ class SQRLLogin{
 		echo $html;
 	}
 
+	function onlyAllowBase64URL($s) {
+		if(!preg_match('/^[a-zA-Z0-9_-]*$/', $s)) {
+			error_log("Incorrect input " . $s);
+			die();
+		}
+	}
+
 	public function loginCallback() {
+
+		// Validate inputs
+		$this->onlyAllowBase64URL($_GET['session']);
+		$this->onlyAllowBase64URL($_GET['nut']);
+
 		$session = $_GET['session'];
 		if(empty($session)) {
 			$nutSession = explode('-', $_GET["nut"]);
@@ -182,6 +194,14 @@ class SQRLLogin{
 	}
 
 	public function apiCallback() {
+
+		// Validate inputs
+		$this->onlyAllowBase64URL($_POST['client']); // Validate Client data
+		$this->onlyAllowBase64URL($_POST['server']); // Validate Server data
+		$this->onlyAllowBase64URL($_POST['ids']); // Validate Identity Signature
+		$this->onlyAllowBase64URL($_POST['pids']); // Validate Previous Identity Signature
+		$this->onlyAllowBase64URL($_POST['urs']); // Validate Unlock Request Signature
+
 		$clientStr = explode("\r\n", $this->base64url_decode($_POST["client"]));
 
 		$client = array();
@@ -192,7 +212,11 @@ class SQRLLogin{
 
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
-		$result = sodium_crypto_sign_verify_detached ($this->base64url_decode($_POST["ids"]), $_POST["client"] . $_POST["server"] , $this->base64url_decode($client["idk"]) );
+		$result = sodium_crypto_sign_verify_detached (
+			$this->base64url_decode($_POST["ids"]),
+			$_POST["client"] . $_POST["server"],
+			$this->base64url_decode($client["idk"])
+		);
 
 		$serverStr = explode("\r\n", $this->base64url_decode($_POST["server"]));
 		if(count($serverStr) == 1) {
@@ -260,17 +284,19 @@ class SQRLLogin{
         echo $this->base64url_encode(implode("\r\n", $response));
     }
 
-	private function createUser($client, $session) {
-		$new_user = wp_create_user($this->get_random_unique_username('user_'), wp_generate_password(), 'nobody@localhost');
-		associateUser($new_user);
+	private function createUser($client) {
+		$new_user = wp_create_user(
+			$this->get_random_unique_username('user_'),
+			wp_generate_password(),
+			$this->get_random_unique_username('user_') . '@localhost'
+		);
+		$this->associateUser($new_user, $client, $session);
 	}
 
-	private function associateUser($user, $client, $session) {
-		update_user_meta( $new_user, 'idk', sanitize_text_field($client['idk']) );
-		update_user_meta( $new_user, 'suk', sanitize_text_field($client['suk']) );
-		update_user_meta( $new_user, 'vuk', sanitize_text_field($client['vuk']) );
-
-		update_user_meta( $new_user, 'sqrl_session', sanitize_text_field($session) );
+	private function associateUser($user, $client) {
+		update_user_meta( $user, 'idk', sanitize_text_field($client['idk']));
+		update_user_meta( $user, 'suk', sanitize_text_field($client['suk']));
+		update_user_meta( $user, 'vuk', sanitize_text_field($client['vuk']));
 	}
 
 	public function disAssociateUser() {
