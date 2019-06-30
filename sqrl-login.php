@@ -401,6 +401,7 @@ class SQRLLogin{
 		 * Set the status condition code for this call.
 		 */
 		$response[] = "tif=" . $retVal;
+		$response[] = "sin=0";
 
 		/**
 		 * Display the result as an base64url encoded string.
