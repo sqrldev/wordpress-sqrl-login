@@ -37,6 +37,9 @@ This is as good as it sounds. It's what we've been waiting for.
 
 == Changelog ==
 
+Version 0.2.2
+Added comments to increase readability.
+
 Version 0.2.0
 Improvements to meet WordPress plugin guidelines.
 
