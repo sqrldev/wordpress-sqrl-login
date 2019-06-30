@@ -252,25 +252,41 @@ class SQRLLogin{
 		// If the string is not Base64URL encoded, die here and don't process code below.
 		$this->onlyAllowBase64URL($_POST['urs']);
 
-		// This line of code will only run on a post variable is Base64URL encoded, due to the line above.
+		/**
+		 * Split the client variables into an array so we can use them later.
+		 */
 		$clientStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["client"])));
-
 		$client = array();
 		foreach ($clientStr as $k => $v) {
 			$p = explode("=", $v);
 			$client[$p[0]] = $p[1];
 		}
 
+		/**
+		 * Prepare the admin post array that we will use multiple times to refeer the client back to
+		 * the server.
+		 */
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
-
-		// This line of code will only run on a post variable is Base64URL encoded, due to the line above.
+		
+		/**
+		 * Check the user call that we have a valid signature for the current authentication.
+		 */
 		$result = sodium_crypto_sign_verify_detached (
 			$this->base64url_decode(sanitize_text_field($_POST["ids"])),
-			$_POST["client"] . sanitize_text_field($_POST["server"]),
-			$this->base64url_decode(sanitize_text_field($client["idk"]))
+			sanitize_text_field($_POST["client"]) . sanitize_text_field($_POST["server"]),
+			$this->base64url_decode($client["idk"])
 		);
+		if(!$result) {
+			error_log("Incorrect signature");
+			die();
+		}
 
-		// This line of code will only run on a post variable is Base64URL encoded, due to the line above.
+		/**
+		 * Prepare the server values. If the previous value from the client is only a single value that means
+		 * the client only have seen the URL from the server and we should fetch the query values from the call.
+		 * 
+		 * Otherwise we handle the server string with properties that are line separated.
+		 */
 		$serverStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["server"])));
 		if(count($serverStr) == 1) {
 			foreach (explode("&", $serverStr[0]) as $k => $v) {
@@ -314,12 +330,13 @@ class SQRLLogin{
 		 */
 		$retVal = $options["noiptest"] ? 0 : 4;
 
-		$response = array();
-
 		/**
+		 * Prepare response.
+		 * 
 		 * Set version number for the call, new nut for the session and a path with query that the next client
 		 * call should use in order to contact the server.
 		 */
+		$response = array();
 		$response[] = "ver=1";
 		$response[] = "nut=" . $nutSession[0] . '-' . $nutSession[1];
 		$response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nutSession[0] . '-' . $nutSession[1];
@@ -373,14 +390,22 @@ class SQRLLogin{
 				$response[] = "can=" . get_site_url() . "?q=canceled";
 			}
 		} else {
+			/**
+			 * If we have an unknown command, Not implemented yet we should print the client request and die.
+			 */
 			error_log(print_r($client, true));
+			die();
 		}
 
+		/**
+		 * Set the status condition code for this call.
+		 */
 		$response[] = "tif=" . $retVal;
-		$response[] = "sin=0";
 
+		/**
+		 * Display the result as an base64url encoded string.
+		 */
 		header('Content-Type: application/x-www-form-urlencoded');
-
         echo $this->base64url_encode(implode("\r\n", $response));
     }
 
