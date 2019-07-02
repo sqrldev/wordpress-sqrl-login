@@ -1,5 +1,5 @@
 === sqrl-login ===
-Contributors: Daniel Persson
+Contributors: kalaspuffar
 Tags: sqrl, login
 Donate link: http://ko-fi.com/danielpersson
 Requires at least: 5.2.2
@@ -30,8 +30,6 @@ This is as good as it sounds. It's what we've been waiting for.
 3. Enable the plugin.
 4. Verify that your login screen has a login screen similar to the screenshot below.
 
-== Frequently Asked Questions ==
-
 == Screenshots ==
 1. Login screen with enabled SQRL Login
 
@@ -50,3 +48,4 @@ Version 0.0.1
 Proof of concept
 
 == Upgrade Notice ==
+== Frequently Asked Questions ==
