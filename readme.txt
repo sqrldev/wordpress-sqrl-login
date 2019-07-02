@@ -35,6 +35,12 @@ This is as good as it sounds. It's what we've been waiting for.
 
 == Changelog ==
 
+Version 0.3.0
+
+Features
+* Better error handling
+* Disallow users to register if not allowed by server.
+
 Version 0.2.3
 
 Bugfixes
