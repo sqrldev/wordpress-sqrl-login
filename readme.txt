@@ -35,6 +35,11 @@ This is as good as it sounds. It's what we've been waiting for.
 
 == Changelog ==
 
+Version 0.2.3
+
+Bugfixes
+* Remove dependency to test site.
+
 Version 0.2.2
 Added comments to increase readability.
 
