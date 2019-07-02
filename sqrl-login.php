@@ -245,7 +245,7 @@ class SQRLLogin{
 	public function exitWithErrorCode($retVal, $server) {
 		$response = array();
 		$response[] = "ver=1";
-		$response[] = "tif=" . $retVal;
+		$response[] = "tif=" . dechex($retVal);
 		$response[] = "sin=0";
 
 		$nutSession = explode('-', $server["nut"]);
@@ -317,7 +317,7 @@ class SQRLLogin{
 			$this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
 		}
 
-		if (get_option( 'users_can_register' ) && !$this->accountPresent($client)) {
+		if (!get_option( 'users_can_register' ) && !$this->accountPresent($client)) {
 			$this->exitWithErrorCode(self::COMMAND_FAILED, $server);
 		}
 
@@ -434,13 +434,13 @@ class SQRLLogin{
 			 * If we have an unknown command, Not implemented yet we should print the client request and die.
 			 */
 			error_log(print_r($client, true));
-			die();
+			$this->exitWithErrorCode(self::FUNCTION_NOT_SUPPORTED, $server);
 		}
 
 		/**
 		 * Set the status condition code for this call.
 		 */
-		$response[] = "tif=" . $retVal;
+		$response[] = "tif=" . dechex($retVal);
 		$response[] = "sin=0";
 
 		/**
