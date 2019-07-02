@@ -13,6 +13,16 @@
 
 class SQRLLogin{
 
+    const CURRENT_ID_MATCH = 1;
+    const PREVIOUS_ID_MATCH = 2;
+    const IP_MATCHED = 4;
+    const ACCOUNT_DISABLED = 8;
+    const FUNCTION_NOT_SUPPORTED = 16;
+    const TRANSIENT_ERROR = 32;
+    const COMMAND_FAILED = 64;
+    const CLIENT_FAILURE = 128;
+    const BAD_ID_ASSOCIATION = 256;
+
     /**
      * SQRLLogin constructor.
 	 *
@@ -34,6 +44,13 @@ class SQRLLogin{
 		add_action( 'show_user_profile', array($this, 'associateSQRL') );
 
 		add_action( 'admin_post_sqrl_disassociate', array($this, 'disAssociateUser') );
+
+		add_action( 'login_enqueue_scripts', array($this, 'enqueue_scripts') );
+		add_action( 'admin_enqueue_scripts', array($this, 'enqueue_scripts') );
+	}
+
+	public function enqueue_scripts() {
+		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
 	}
 
 	/**
@@ -116,9 +133,11 @@ class SQRLLogin{
 	 */
     public function addToLoginForm($user = false) {
         if (get_option( 'users_can_register' )) {
-            $button_label = __('Login or Register with SQRL', 'sqrl');
+            $button_label = __('Sign in or Register with SQRL', 'sqrl');
+            $qrcode_label = __('You may also sign in or register with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl');
         } else {
-            $button_label = __('Login with SQRL', 'sqrl');
+            $button_label = __('Sign in with SQRL', 'sqrl');
+            $qrcode_label = __('You may also sign in with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl');
         }
 
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
@@ -135,19 +154,17 @@ class SQRLLogin{
 
 		if($user) {
 			set_transient($session, $user->id, 15 * 60);
-		}
+        }
 
-		wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
-		wp_register_script('reload', plugin_dir_url(__FILE__).'reload.js');
-		wp_localize_script('reload', 'sqrlReload', array(
-			'adminURL' => admin_url('admin-post.php'),
-			'session' => $session,
-		));
-		wp_enqueue_script('reload');
+        wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
+        wp_register_script('reload', plugin_dir_url(__FILE__).'reload.js');
+        wp_localize_script('reload', 'sqrlReload', array(
+            'adminURL' => admin_url('admin-post.php'),
+            'session' => $session,
+        ));
+        wp_enqueue_script('reload');
 
-		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
-
-		?>
+        ?>
 		<div class="sqrl-login-wrapper">
 			<div class="sqrl-login-row">
 				<a id="sqrl" href="<?php echo $sqrlURL ?>" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="<?php echo $this->base64url_encode($sqrlURL) ?>" tabindex="-1">
@@ -157,9 +174,7 @@ class SQRLLogin{
 			</div>
 			<div class="sqrl-login-row">
 				<img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chld=M|0&chl=<?php echo urlencode($sqrlURL) ?>"/>
-				<div>
-					You may also login with SQRL using any SQRL-equipped smartphone by scanning this QR code.
-				</div>
+				<div><?php echo $qrcode_label ?></div>
 			</div>
 			<div class="sqrl-login-row">
 				<span id="reloadDisplay"></span>
@@ -189,7 +204,7 @@ class SQRLLogin{
 	function onlyAllowBase64URL($s) {
 		if(!preg_match('/^[a-zA-Z0-9_-]*$/', $s)) {
 			error_log("Incorrect input " . $s);
-			die();
+			$this->exitWithErrorCode(self::TRANSIENT_ERROR);
 		}
 	}
 
@@ -222,6 +237,29 @@ class SQRLLogin{
 		wp_set_auth_cookie( $wp_users[0] );
 
 		header("Location: " . get_site_url(), true);
+	}
+
+	/**
+	 * Return with information to the server about the error that occured.
+	 */
+	public function exitWithErrorCode($retVal, $server) {
+		$response = array();
+		$response[] = "ver=1";
+		$response[] = "tif=" . $retVal;
+		$response[] = "sin=0";
+
+		$nutSession = explode('-', $server["nut"]);
+		if(count($nutSession) == 2) {
+			$nutSession[0] = $this->generateRandomString();
+
+			$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
+			$response[] = "nut=" . $nutSession[0] . '-' . $nutSession[1];
+			$response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nutSession[0] . '-' . $nutSession[1];
+		}
+
+		header('Content-Type: application/x-www-form-urlencoded');
+		echo $this->base64url_encode(implode("\r\n", $response));
+		exit();
 	}
 
 	/**
@@ -276,7 +314,11 @@ class SQRLLogin{
 		);
 		if(!$result) {
 			error_log("Incorrect signature");
-			die();
+			$this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
+		}
+
+		if (get_option( 'users_can_register' ) && !$this->accountPresent($client)) {
+			$this->exitWithErrorCode(self::COMMAND_FAILED, $server);
 		}
 
 		/**
