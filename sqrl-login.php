@@ -138,33 +138,6 @@ class SQRLLogin{
 			set_transient($session, $user->id, 15 * 60);
 		}
 
-		$html .= '<div class="sqrl-login-wrapper">';
-		$html .= '	<div class="sqrl-login-row">';
-		$html .= '		<a id="sqrl" href="' . $sqrlURL . '" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="' . $this->base64url_encode($sqrlURL) . '" tabindex="-1">';
-		$html .= '			<img src="' . plugins_url( 'images/sqrl-button.png', __FILE__ ) . '"/>';
-		$html .= '		</a>';
-		$html .= '	</div>';
-		$html .= '	<div class="sqrl-login-row">';
-		$html .= '		<img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chld=M|0&chl=' . urlencode($sqrlURL) . '"/>';
-		$html .= '		<div>';
-		$html .= '			You may also login with SQRL using';
-		$html .= '			any SQRL-equipped smartphone by';
-		$html .= '			scanning this QR code.';
-		$html .= '		</div>';
-		$html .= '	</div>';
-		$html .= '	<div class="sqrl-login-row">';
-		$html .= '		<span id="reloadDisplay"></span>';
-		$html .= '	</div>';
-		$html .= '	<div class="sqrl-login-row">';
-		$html .= '	    <a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">';
-		$html .= '		   <img src="' . plugins_url( 'images/en_badge_web_generic.png', __FILE__ ) . '" alt="Get it on Google Play" height="60" />';
-		$html .= '	    </a>';
-		$html .= '	    <a href="https://www.grc.com/files/sqrl.exe">';
-		$html .= '		   <img src="' . plugins_url( 'images/microsoft.png', __FILE__ ) . '" alt="Get it for Windows" height="42" />';
-		$html .= '	    </a>';
-		$html .= '	</div>';
-		$html .= '</div>';
-
 		wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
 		wp_register_script('reload', plugin_dir_url(__FILE__).'reload.js');
 		wp_localize_script('reload', 'sqrlReload', array(
@@ -175,7 +148,33 @@ class SQRLLogin{
 
 		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
 
-		echo $html;
+		?>
+		<div class="sqrl-login-wrapper">
+			<div class="sqrl-login-row">
+				<a id="sqrl" href="<?php echo $sqrlURL ?>" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="<?php echo $this->base64url_encode($sqrlURL) ?>" tabindex="-1">
+				  <img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ) ?>"/>
+		          <div><?php echo $button_label ?></div>
+				</a>
+			</div>
+			<div class="sqrl-login-row">
+				<img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chld=M|0&chl=<?php echo urlencode($sqrlURL) ?>"/>
+				<div>
+					You may also login with SQRL using any SQRL-equipped smartphone by scanning this QR code.
+				</div>
+			</div>
+			<div class="sqrl-login-row">
+				<span id="reloadDisplay"></span>
+			</div>
+			<div class="sqrl-login-row">
+			    <a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">
+				   <img src="<?php echo plugins_url( 'images/en_badge_web_generic.png', __FILE__ ) ?>" alt="Get it on Google Play" height="60" />
+			    </a>
+			    <a href="https://www.grc.com/files/sqrl.exe">
+				   <img src="<?php echo plugins_url( 'images/microsoft.png', __FILE__ ) ?>" alt="Get it for Windows" height="42" />
+			    </a>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**
