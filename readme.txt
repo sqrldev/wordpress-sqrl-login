@@ -47,16 +47,16 @@ Bugfixes
 * Remove dependency to test site.
 
 Version 0.2.2
-Added comments to increase readability.
+* Added comments to increase readability.
 
 Version 0.2.0
-Improvements to meet WordPress plugin guidelines.
+* Improvements to meet WordPress plugin guidelines.
 
 Version 0.1.0
-Clean up and working towards a usable plugin to login
+* Clean up and working towards a usable plugin to login
 
 Version 0.0.1
-Proof of concept
+* Proof of concept
 
 == Upgrade Notice ==
 == Frequently Asked Questions ==
