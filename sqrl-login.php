@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.2.2
+ * Version:           0.2.3
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -15,7 +15,7 @@ class SQRLLogin{
 
     /**
      * SQRLLogin constructor.
-	 * 
+	 *
 	 * Setting up all places we want to show the login form and also all
 	 * the get / post request we need to handle.
      */
@@ -83,8 +83,7 @@ class SQRLLogin{
 	 * connection has been done.
 	 */
 	function checkIfLoggedInAjax() {
-		$siteURL = "https://uhash.com";
-		header("Access-Control-Allow-Origin: {$siteURL}");
+		header("Access-Control-Allow-Origin: " . get_site_url());
 		header('Access-Control-Allow-Credentials: true');
 		header('Access-Control-Max-Age: 1');    // cache for 1 day
 		header("Access-Control-Allow-Methods: GET, OPTIONS");
@@ -182,7 +181,7 @@ class SQRLLogin{
 	 * the characters a-z, A-Z, 0-9, /, + and =. The characters /, + and = are not valid characters to be
 	 * used in URLs so Base64URL uses the _ instead of / and - instead of +. We also don't use any padding with
 	 * = because that character does not work in URLs.
-	 * 
+	 *
 	 * The function below checks that the string is Base64URL encoded and if not it will report the string to
 	 * the error log and die. This means that if any incorrect data is sent the execution will halt here and not
 	 * continue.
@@ -233,11 +232,11 @@ class SQRLLogin{
 
 		// Validate Client data
 		// If the string is not Base64URL encoded, die here and don't process code below.
-		$this->onlyAllowBase64URL($_POST['client']); 
+		$this->onlyAllowBase64URL($_POST['client']);
 
 		// Validate Server data
 		// If the string is not Base64URL encoded, die here and don't process code below.
-		$this->onlyAllowBase64URL($_POST['server']); 
+		$this->onlyAllowBase64URL($_POST['server']);
 
 		// Validate Identity Signature
 		// If the string is not Base64URL encoded, die here and don't process code below.
@@ -266,7 +265,7 @@ class SQRLLogin{
 		 * the server.
 		 */
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
-		
+
 		/**
 		 * Check the user call that we have a valid signature for the current authentication.
 		 */
@@ -283,7 +282,7 @@ class SQRLLogin{
 		/**
 		 * Prepare the server values. If the previous value from the client is only a single value that means
 		 * the client only have seen the URL from the server and we should fetch the query values from the call.
-		 * 
+		 *
 		 * Otherwise we handle the server string with properties that are line separated.
 		 */
 		$serverStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["server"])));
@@ -301,7 +300,7 @@ class SQRLLogin{
 		}
 
 		/**
-		 * Get the current nut + session value and replace the nut in order to have a 
+		 * Get the current nut + session value and replace the nut in order to have a
 		 * unique random value for each call in order to secure against replay attacks.
 		 */
 		$nutSession = explode('-', $server["nut"]);
@@ -309,13 +308,13 @@ class SQRLLogin{
 
 		/**
 		 * Explode the option array with all the SQRL options. Valid values are
-		 * 
+		 *
 		 * suk = Request for Server unlock key
 		 * cps = Client Provided Session is available
 		 * noiptest = Server don't need to check the IP address of the client (remote device login)
 		 * sqrlonly = Client requests the server to only allow SQRL logins, all other authentication should be
 		 * 			  disabled.
-		 * hardlock = Client request all "out of band" changes to the account. Like security questions to 
+		 * hardlock = Client request all "out of band" changes to the account. Like security questions to
 		 * 			  retrieve the account when password is lost.
 		 */
 		$options = array();
@@ -331,7 +330,7 @@ class SQRLLogin{
 
 		/**
 		 * Prepare response.
-		 * 
+		 *
 		 * Set version number for the call, new nut for the session and a path with query that the next client
 		 * call should use in order to contact the server.
 		 */
@@ -424,7 +423,7 @@ class SQRLLogin{
 
 	/**
 	 * This function associates a user with a SQRL identity.
-	 * 
+	 *
 	 * idk = Identity key, used to check the validity of the current user and also
 	 * 		 associate the current login with the account.
 	 * suk = Server unlock key is returned on request from the client when the client
@@ -440,7 +439,7 @@ class SQRLLogin{
 
 	/**
 	 * This function removes the SQRL identifying data from the user account.
-	 * 
+	 *
 	 * idk = Identity key, used to check the validity of the current user and also
 	 * 		 associate the current login with the account.
 	 * suk = Server unlock key is returned on request from the client when the client
@@ -448,7 +447,7 @@ class SQRLLogin{
 	 * vuk = Verify Unlock Key, used to verify the unlock request signature sent from the client
 	 * 		 when an disabled account should be enabled again.
 	 * sqrl_session = temporary value used during login to signal a correct authentication.
-	 */	
+	 */
 	public function disAssociateUser() {
 		$user = wp_get_current_user();
 
@@ -532,7 +531,7 @@ class SQRLLogin{
 	 * the characters a-z, A-Z, 0-9, /, + and =. The characters /, + and = are not valid characters to be
 	 * used in URLs so Base64URL uses the _ instead of / and - instead of +. We also don't use any padding with
 	 * = because that character does not work in URLs.
-	 * 
+	 *
 	 * The functions below encodes and decodes strings to and from Base64URL encoding. Simply replacing the
 	 * not allowed characters before doing a regular base64 decoding and removing any padding.
 	 */
