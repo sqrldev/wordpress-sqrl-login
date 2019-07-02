@@ -12,7 +12,7 @@ License URI: https://raw.githubusercontent.com/kalaspuffar/wordpress-sqrl-login/
 Secure Quick Reliable Login, this plugin will enable logging in using SQRL clients.
 
 == Description ==
-SQRL can be used to log in to a site in a secure manor without giving away any personal information. This plugin enables that functionallity.
+SQRL can be used to log in to a site in a secure manner without giving away any personal information. This plugin enables that functionallity.
 
 Before you begin using SQRL to log in to websites, your SQRL private identity must be created. You only need one, probably for life, because it reveals NOTHING about you, and it's highly secure. It's just a very long (77-digit) random number.
 
