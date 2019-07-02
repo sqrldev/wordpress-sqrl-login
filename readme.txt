@@ -28,7 +28,7 @@ This is as good as it sounds. It's what we've been waiting for.
 1. Ensure that your site is using SSL. It's using a https connection.
 2. Install the plugin.
 3. Enable the plugin.
-4. Verify that your login screen has a login screen similar to the screenshot below.
+4. Verify that your login screen has a login screen similar to the screenshot on the details page.
 
 == Screenshots ==
 1. Login screen with enabled SQRL Login
