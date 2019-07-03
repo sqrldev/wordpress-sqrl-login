@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.3.0
+ * Version:           0.3.1
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -317,10 +317,6 @@ class SQRLLogin{
 			$this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
 		}
 
-		if (!get_option( 'users_can_register' ) && !$this->accountPresent($client)) {
-			$this->exitWithErrorCode(self::COMMAND_FAILED, $server);
-		}
-
 		/**
 		 * Prepare the server values. If the previous value from the client is only a single value that means
 		 * the client only have seen the URL from the server and we should fetch the query values from the call.
@@ -412,6 +408,9 @@ class SQRLLogin{
 				if($user) {
 					$this->associateUser($user, $client, $nutSession[1]);
 				} else {
+                    if (!get_option( 'users_can_register' )) {
+                        $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                    }            
 					$this->createUser($client, $nutSession[1]);
 				}
 			}
