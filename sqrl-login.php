@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.3.1
+ * Version:           0.4.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -317,6 +317,22 @@ class SQRLLogin{
 			$this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
 		}
 
+        /**
+         * Check the user call that we have a valid pewvious if available signature for
+         * the current authentication.
+         */
+        if(!empty($client["pidk"])) {
+            $result = sodium_crypto_sign_verify_detached (
+                $this->base64url_decode(sanitize_text_field($_POST["pids"])),
+                sanitize_text_field($_POST["client"]) . sanitize_text_field($_POST["server"]),
+                $this->base64url_decode($client["pidk"])
+            );
+            if(!$result) {
+                error_log("Incorrect previous signature");
+                $this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
+            }
+        }
+
 		/**
 		 * Prepare the server values. If the previous value from the client is only a single value that means
 		 * the client only have seen the URL from the server and we should fetch the query values from the call.
@@ -364,7 +380,7 @@ class SQRLLogin{
 		 * TODO: More correct check should be implemented later, now we only return the correct code for
 		 * the ip check if needed.
 		 */
-		$retVal = $options["noiptest"] ? 0 : 4;
+		$retVal = $options["noiptest"] ? 0 : self::IP_MATCHED;
 
 		/**
 		 * Prepare response.
@@ -380,8 +396,8 @@ class SQRLLogin{
 			/**
 			 * Query the system for the current user status.
 			 */
-			if($this->accountPresent($client)) {
-				$retVal += 1;
+			if($this->accountPresent($client['idk'])) {
+				$retVal += self::CURRENT_ID_MATCH;
 
 				/**
 				 * If the client requests a Server Unlock Key then add that to the response.
@@ -390,14 +406,17 @@ class SQRLLogin{
 					$response[] = "suk=" . $this->getServerUnlockKey($client);
 				}
 			}
+
+			if($this->accountPresent($client['pidk'])) {
+				$retVal += self::PREVIOUS_ID_MATCH;
+			}
+
 		} else if($client['cmd'] == 'ident') {
 			/**
 			 * Identify with the system either creating a new user or authorizing login with a user
 			 * already in the system.
 			 */
-			if(!$this->accountPresent($client)) {
-				$retVal += 1;
-
+			if(!$this->accountPresent($client['idk'])) {
 				/**
 				 * Fetch the current user from the transient session store and remove it as we only keep
 				 * it for the current session.
@@ -405,14 +424,21 @@ class SQRLLogin{
 				$user = get_transient($nutSession[1]);
 				delete_transient($nutSession[1]);
 
+				if(!$user && $this->accountPresent($client['pidk'])) {
+					$user = $this->getUserId($client['pidk']);
+				}
+
 				if($user) {
 					$this->associateUser($user, $client, $nutSession[1]);
 				} else {
-                    if (!get_option( 'users_can_register' )) {
-                        $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
-                    }            
+					if (!get_option( 'users_can_register' )) {
+						$this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+					}
+
 					$this->createUser($client, $nutSession[1]);
 				}
+
+				$retVal += 1;
 			}
 
 			/**
@@ -523,6 +549,23 @@ class SQRLLogin{
 	 * it when doing special operations like enabling or removing the SQRL identity
 	 * from the system.
 	 */
+	private function getUserId($idkVal) {
+		$wp_users = get_users(array(
+			'meta_key'     => 'idk',
+			'meta_value'   => sanitize_text_field($idkVal),
+			'number'       => 1,
+			'count_total'  => false,
+			'fields'       => 'id',
+		));
+
+		return $wp_users[0];
+	}
+
+	/**
+	 * Gets the server unlock code, saved for the user so the user can ask for
+	 * it when doing special operations like enabling or removing the SQRL identity
+	 * from the system.
+	 */
 	private function getServerUnlockKey($client) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
@@ -539,10 +582,10 @@ class SQRLLogin{
 	 * Checks if the current client requests identity is already associated with a user
 	 * in the system.
 	 */
-	private function accountPresent($client) {
+	private function accountPresent($idkVal) {
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
-			'meta_value'   => sanitize_text_field($client['idk']),
+			'meta_value'   => sanitize_text_field($idkVal),
 			'number'       => 1,
 			'count_total'  => false,
 			'fields'       => 'id',
