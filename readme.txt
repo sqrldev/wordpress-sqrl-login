@@ -35,6 +35,14 @@ This is as good as it sounds. It's what we've been waiting for.
 
 == Changelog ==
 
+Version 0.4.0
+
+Features
+* Handle previous keys
+
+Bugfixes
+* Reassociate correctly when registration is not allowed.
+
 Version 0.3.0
 
 Features
