@@ -35,6 +35,11 @@ This is as good as it sounds. It's what we've been waiting for.
 
 == Changelog ==
 
+Version 0.4.1
+
+Bugfixes
+* Didn't handle empty values correctly when looking for users.
+
 Version 0.4.0
 
 Features
