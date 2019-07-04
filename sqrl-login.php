@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.4.0
+ * Version:           0.4.1
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -550,6 +550,8 @@ class SQRLLogin{
 	 * from the system.
 	 */
 	private function getUserId($idkVal) {
+		if(empty($idkVal)) return false;
+
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
 			'meta_value'   => sanitize_text_field($idkVal),
@@ -567,6 +569,8 @@ class SQRLLogin{
 	 * from the system.
 	 */
 	private function getServerUnlockKey($client) {
+		if(empty($client['idk'])) return false;
+
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
 			'meta_value'   => sanitize_text_field($client['idk']),
@@ -583,6 +587,8 @@ class SQRLLogin{
 	 * in the system.
 	 */
 	private function accountPresent($idkVal) {
+		if(empty($idkVal)) return false;
+
 		$wp_users = get_users(array(
 			'meta_key'     => 'idk',
 			'meta_value'   => sanitize_text_field($idkVal),
