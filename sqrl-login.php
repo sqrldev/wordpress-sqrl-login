@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.4.1
+ * Version:           0.5.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -148,9 +148,16 @@ class SQRLLogin{
 			$domainName = $siteUrl[1];
 		}
 
+		$slashPos = strpos($domainName, '/');
+		$pathLenParam = "";
+		if ($slashPos != -1) {
+			$pathLenParam = '&x=' . (strlen($domainName) - $slashPos);
+			$domainName = substr($domainName, 0, $slashPos);
+		}
+
 		$session = $this->generateRandomString();
 		$nut = $this->generateRandomString();
-		$sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . '-' . $session;
+		$sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . '-' . $session . $pathLenParam;
 
 		if($user) {
 			set_transient($session, $user->id, 15 * 60);
@@ -161,6 +168,7 @@ class SQRLLogin{
         wp_localize_script('reload', 'sqrlReload', array(
             'adminURL' => admin_url('admin-post.php'),
             'session' => $session,
+			'existingUserParam' => $user ? "&existingUser=1" : ""
         ));
         wp_enqueue_script('reload');
 
@@ -236,7 +244,11 @@ class SQRLLogin{
 		delete_user_meta( $wp_users[0], 'sqrl_session');
 		wp_set_auth_cookie( $wp_users[0] );
 
-		header("Location: " . get_site_url(), true);
+		if (!empty($_GET['existingUser'])) {
+			header("Location: " . admin_url('profile.php'), true);
+		} else {
+			header("Location: " . get_site_url(), true);
+		}
 	}
 
 	/**
@@ -388,6 +400,7 @@ class SQRLLogin{
 		 * Set version number for the call, new nut for the session and a path with query that the next client
 		 * call should use in order to contact the server.
 		 */
+		$associatedExistingUser = false;
 		$response = array();
 		$response[] = "ver=1";
 		$response[] = "nut=" . $nutSession[0] . '-' . $nutSession[1];
@@ -424,6 +437,10 @@ class SQRLLogin{
 				$user = get_transient($nutSession[1]);
 				delete_transient($nutSession[1]);
 
+				if($user) {
+					$associatedExistingUser = true;
+				}
+
 				if(!$user && $this->accountPresent($client['pidk'])) {
 					$user = $this->getUserId($client['pidk']);
 				}
@@ -451,7 +468,7 @@ class SQRLLogin{
 			 * to securely login.
 			 */
 			if(strpos($client['opt'], 'cps') !== false) {
-				$response[] = "url=" . get_site_url() . $adminPostPath . "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1];
+				$response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1] . ($associatedExistingUser ? "&existingUser=1" : "");
 				$response[] = "can=" . get_site_url() . "?q=canceled";
 			}
 		} else {
@@ -474,6 +491,23 @@ class SQRLLogin{
 		header('Content-Type: application/x-www-form-urlencoded');
         echo $this->base64url_encode(implode("\r\n", $response));
     }
+
+
+	/**
+	 * This function returns the server url without path
+	 */
+	private function getServerUrlWithoutPath() {
+		$parsedURL = parse_url(get_site_url());
+
+		$url = $parsedURL['scheme'];
+		$url .= '://';
+		$url .= $parsedURL['host'];
+		if (!empty($parsedURL['port'])) {
+			$url .= ':';
+			$url .= $parsedURL['port'];
+		}
+		return $url;
+	}
 
 	/**
 	 * This function will create a new user and associate it with an SQRL identity

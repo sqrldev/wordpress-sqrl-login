@@ -14,15 +14,15 @@ Secure Quick Reliable Login, this plugin will enable logging in using SQRL clien
 == Description ==
 SQRL can be used to log in to a site in a secure manner without giving away any personal information. This plugin enables that functionallity.
 
-Before you begin using SQRL to log in to websites, your SQRL private identity must be created. You only need one, probably for life, because it reveals NOTHING about you, and it's highly secure. It's just a very long (77-digit) random number.
+Instead of using a username, email and a password, SQRL uses an app to login to SQRL-aware websites.
 
-From then on, whenever you log in with SQRL to a website, your private identity is used to generate another 77-digit number for that one website. Every website you visit sees you as a different number, yet every time you return to the same site, that site's unique number is regenerated.
+When SQRL logs you into a website, your identity is a long code that looks like this: E6Qs2gX7W-Pwi9Y3KAmbkuYjLSWXCtKyBcymWloHAuo.
 
-This allows you to be uniquely and permanently identified, yet completely anonymous.
+Your SQRL identity is a different long code for every website you login to, but it is always the same code when you return to a site you visited before. This means that websites never know who you are, but they do know when you return.
 
-Since you never need to use an email address or a password, you never give a website your actual identity to protect. If the website's SQRL identities are ever stolen, not only would the stolen identities only be valid for that one website, but SQRL's cryptography prevents impersonation by using stolen identities.
+You may choose to remain anonymous to a website, such as when you post a response to someone's blog. SQRL never identifies you by anything other than that long code.
 
-This is as good as it sounds. It's what we've been waiting for.
+In other cases you will want to be known, like when you use SQRL to login as you at Amazon, Facebook, Netflix, or your bank. In those cases, you would inform Amazon that that particular code is actually you. SQRL lets you do that.
 
 == Installation ==
 1. Ensure that your site is using SSL. It's using a https connection.
@@ -34,6 +34,12 @@ This is as good as it sounds. It's what we've been waiting for.
 1. Login screen with enabled SQRL Login
 
 == Changelog ==
+
+Version 0.5.0
+
+Features
+* Handle sub path installations. Eg. https://domain.com/wordpress_path/
+* Keep user on the profile page if associating an existing user.
 
 Version 0.4.1
 

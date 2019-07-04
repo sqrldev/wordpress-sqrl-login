@@ -12,7 +12,8 @@ setInterval(function() {
 			})
 	    	.then((body) => {
 				if(body == 'true') {
-					window.location.href = sqrlReload.adminURL + '?action=sqrl_login&session=' + sqrlReload.session;
+					window.location.href = sqrlReload.adminURL + '?action=sqrl_login&session=' +
+						sqrlReload.session + sqrlReload.existingUserParam;
 				}
 	    	});
 		countDown = 6;
