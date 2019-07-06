@@ -29,7 +29,7 @@
 .sqrl-button {
     display: flex;
     flex-direction: row;
-    justify-content: left;
+    justify-content: flex-start;
     align-items: center;
     background: #007CC3;
     border-radius: 5px;

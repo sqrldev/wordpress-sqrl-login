@@ -19,4 +19,5 @@ Special thanks to:
 
 
 ![Login screen](assets/screenshot-1.png)
-![Profile screen](assets/screenshot-2.png)
+![Profile screen without association](assets/screenshot-2.png)
+![Profile screen with association](assets/screenshot-3.png)

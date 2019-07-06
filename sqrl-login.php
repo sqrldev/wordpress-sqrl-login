@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.6.2
+ * Version:           0.6.3
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -11,7 +11,7 @@
  * GitHub Plugin URI: http://github.com/kalaspuffar/wordpress-sqrl
  */
 
-class SQRLLogin{
+class SQRLLogin {
 
     const CURRENT_ID_MATCH = 1;
     const PREVIOUS_ID_MATCH = 2;
@@ -22,6 +22,12 @@ class SQRLLogin{
     const COMMAND_FAILED = 64;
     const CLIENT_FAILURE = 128;
     const BAD_ID_ASSOCIATION = 256;
+
+	/**
+	 * Change messages
+	 */
+    const MESSAGE_DISABLED = '1';
+    const MESSAGE_REMOVED = '2';
 
     /**
      * SQRLLogin constructor.
@@ -34,6 +40,8 @@ class SQRLLogin{
 
 		add_action( 'admin_post_sqrl_login', array($this, 'loginCallback'));
         add_action( 'admin_post_nopriv_sqrl_login', array($this, 'loginCallback'));
+		add_action( 'admin_post_sqrl_logout', array($this, 'logoutCallback'));
+        add_action( 'admin_post_nopriv_sqrl_logout', array($this, 'logoutCallback'));
         add_action( 'admin_post_sqrl_auth', array($this, 'apiCallback'));
         add_action( 'admin_post_nopriv_sqrl_auth', array($this, 'apiCallback'));
 
@@ -45,14 +53,14 @@ class SQRLLogin{
 
 		add_action( 'admin_post_sqrl_disassociate', array($this, 'disAssociateUser') );
 
-		add_action( 'login_enqueue_scripts', array($this, 'enqueue_scripts') );
-        add_action( 'admin_enqueue_scripts', array($this, 'enqueue_scripts') );
+		add_action( 'login_enqueue_scripts', array($this, 'enqueueScripts') );
+        add_action( 'admin_enqueue_scripts', array($this, 'enqueueScripts') );
 
-        add_action( 'wp_login', array($this, 'user_login'), 10, 2 );
-        add_filter( 'login_message', array($this, 'user_login_message') );
+        add_action( 'wp_login', array($this, 'userLogin'), 10, 2 );
+        add_filter( 'login_message', array($this, 'userLoginMessage') );
 	}
 
-	public function enqueue_scripts() {
+	public function enqueueScripts() {
 		wp_enqueue_style('style', plugin_dir_url(__FILE__).'style.css');
 	}
 
@@ -82,7 +90,7 @@ class SQRLLogin{
  								    <img src="<?php echo plugins_url( 'images/disconnect.svg', __FILE__ ) ?>"/>
                                 	<div><?php echo $disassociate_button ?></div>
                             	</a>
-							</div>								
+							</div>
 							<?php $this->addToLoginForm($user, true); ?>
 						</div>
 					</td>
@@ -170,9 +178,12 @@ class SQRLLogin{
 
 		if ($associated) {
             $button_label = __('Change your account', 'sqrl');
-            $qrcode_label = __('Scan QR code or click button to change account. Using your client you can disable, enable and remove the account.', 'sqrl');			
-        }
-        
+            $qrcode_label = __('Scan QR code or click button to change account. Using your client you can disable, enable and remove the account.', 'sqrl');
+        } else if ($user) {
+            $button_label = __('Associate with account', 'sqrl');
+            $qrcode_label = __('Scan QR code or click button to associate to this account.', 'sqrl');
+		}
+
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
 		$siteUrl = explode("://", get_site_url());
@@ -219,10 +230,10 @@ class SQRLLogin{
         ?>
 		<div class="sqrl-login-wrapper">
 			<div class="sqrl-login-row">
-                <a id="sqrl" 
-				   class="sqrl-button" 
-				   href="<?php echo $sqrlURL ?>" onclick="sqrlLinkClick(this);return true;" 
-				   encoded-sqrl-url="<?php echo $this->base64url_encode($sqrlURL) ?>" 
+                <a id="sqrl"
+				   class="sqrl-button"
+				   href="<?php echo $sqrlURL ?>" onclick="sqrlLinkClick(this);return true;"
+				   encoded-sqrl-url="<?php echo $this->base64url_encode($sqrlURL) ?>"
 				   tabindex="-1"
 				>
 				  <img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ) ?>"/>
@@ -265,6 +276,22 @@ class SQRLLogin{
 		}
 	}
 
+    public function logoutCallback() {
+		$messageKey = sanitize_text_field($_GET['message']);
+		$this->logoutWithMessage($messageKey);
+    }
+
+	public function logoutWithMessage($messageKey) {
+		// Clear cookies, a.k.a log user out
+		wp_clear_auth_cookie();
+		// Build login URL and then redirect
+		$login_url = site_url( 'wp-login.php', 'login' );
+
+		$login_url = add_query_arg( 'message', $messageKey, $login_url );
+		wp_redirect( $login_url );
+		exit;
+	}
+
 	public function loginCallback() {
 
 		// Validate session value
@@ -290,15 +317,22 @@ class SQRLLogin{
 			'fields'       => 'id',
 		));
 
+		if (empty($wp_users)) {
+			$this->logoutWithMessage(self::MESSAGE_REMOVED);
+		}
+
 		delete_user_meta( $wp_users[0], 'sqrl_session');
 		wp_set_auth_cookie( $wp_users[0] );
 
-		if (!empty($_GET['existingUser'])) {
+		$disabled = get_user_meta( $wp_users[0], 'sqrl_disable_user', true);
+		if ($disabled) {
+			$this->logoutWithMessage(self::MESSAGE_DISABLED);
+		} else if (!empty($_GET['existingUser'])) {
 			header("Location: " . admin_url('profile.php'), true);
 		} else {
 			header("Location: " . get_site_url(), true);
-		}
-	}
+        }
+    }
 
 	/**
 	 * Return with information to the server about the error that occured.
@@ -572,7 +606,20 @@ class SQRLLogin{
             $retVal += self::CURRENT_ID_MATCH + self::ACCOUNT_DISABLED;
 
             $response[] = "suk=" . $this->getServerUnlockKey($client);
-            
+
+			/**
+			 * If Client Provided Session is enabled we need to respond with links for the client to follow in order
+			 * to securely login.
+			 */
+			if(strpos($client['opt'], 'cps') !== false) {
+				$response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_DISABLED;
+				$response[] = "can=" . get_site_url() . "?q=canceled";
+            } else {
+				/**
+				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
+				 */
+				$this->addUserSession($client, $server);
+			}
         } else if($client['cmd'] == 'enable') {
             /*
              * Fetch user to be enabled.
@@ -594,16 +641,30 @@ class SQRLLogin{
                 $this->base64url_decode(sanitize_text_field($_POST["urs"])),
                 sanitize_text_field($_POST["client"]) . sanitize_text_field($_POST["server"]),
                 $this->base64url_decode($this->getVerifyUnlockKey($client))
-            );        
+            );
             if(!$result) {
                 error_log("Incorrect Unlock Request signature");
                 $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
-            }            
+            }
 
             delete_user_meta( $user, 'sqrl_disable_user' );
 
             $retVal += self::CURRENT_ID_MATCH;
 
+			/**
+			 * Add session data signaling to the reload.js script that a login has been successfully transacted.
+   		     */
+            $this->addUserSession($client, $server);
+
+            /**
+             * If Client Provided Session is enabled we need to respond with links for the client to follow in order
+             * to securely login.
+             */
+            if(strpos($client['opt'], 'cps') !== false) {
+                $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
+                    "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1];
+                $response[] = "can=" . get_site_url() . "?q=canceled";
+            }
         } else if($client['cmd'] == 'remove') {
             /*
              * Fetch user to be removed.
@@ -616,23 +677,27 @@ class SQRLLogin{
                 error_log("User is missing, can't be removed");
                 $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
             }
-			if (!$this->accountDisabled($client)) {
-                error_log("User is not disabled, can't be removed");
-                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
-            }
 
             $result = sodium_crypto_sign_verify_detached (
                 $this->base64url_decode(sanitize_text_field($_POST["urs"])),
                 sanitize_text_field($_POST["client"]) . sanitize_text_field($_POST["server"]),
                 $this->base64url_decode($this->getVerifyUnlockKey($client))
-            );        
+            );
             if(!$result) {
                 error_log("Incorrect Unlock Request signature");
                 $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
-            } 			
-			
-			wp_delete_user( $user );
-		} else {
+            }
+
+			/**
+			 * If Client Provided Session is enabled we need to respond with links for the client to follow in order
+			 * to securely login.
+			 */
+			if(strpos($client['opt'], 'cps') !== false) {
+                $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_REMOVED;
+				$response[] = "can=" . get_site_url() . "?q=canceled";
+            }
+            wp_delete_user( $user );
+        } else {
 			/**
 			 * If we have an unknown command, Not implemented yet we should print the client request and die.
 			 */
@@ -675,7 +740,7 @@ class SQRLLogin{
      *
      * Code inspired by https://github.com/jaredatch/Disable-Users
      */
-	public function user_login( $user_login, $user = null ) {
+	public function userLogin( $user_login, $user = null ) {
 		if ( !$user ) {
 			$user = get_user_by('login', $user_login);
 		}
@@ -692,7 +757,7 @@ class SQRLLogin{
 			wp_clear_auth_cookie();
 			// Build login URL and then redirect
 			$login_url = site_url( 'wp-login.php', 'login' );
-			$login_url = add_query_arg( 'disabled', '1', $login_url );
+			$login_url = add_query_arg( 'message', self::MESSAGE_DISABLED, $login_url );
 			wp_redirect( $login_url );
 			exit;
 		}
@@ -703,10 +768,12 @@ class SQRLLogin{
      *
      * Code inspired by https://github.com/jaredatch/Disable-Users
      */
-	public function user_login_message( $message ) {
-		// Show the error message if it seems to be a disabled user
-		if ( isset( $_GET['disabled'] ) && $_GET['disabled'] == 1 )
-			$message =  '<div id="login_error">' . apply_filters( 'ja_disable_users_notice', __( 'Account disabled', 'ja_disable_users' ) ) . '</div>';
+	public function userLoginMessage( $message ) {
+		if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_DISABLED )
+			$message =  '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
+        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_REMOVED )
+			$message =  '<div id="login_error">' . __( 'Account removed', 'sqrl' ) . '</div>';
+
 		return $message;
 	}
 
@@ -832,7 +899,7 @@ class SQRLLogin{
 
 		return get_user_meta($wp_users[0], "suk", true);
     }
-    
+
 	/**
 	 * Gets the verify unlock code, saved for the user we can verify special
      * operations like enabling and removing accounts.
@@ -849,8 +916,8 @@ class SQRLLogin{
 		));
 
 		return get_user_meta($wp_users[0], "vuk", true);
-    }    
-    
+    }
+
 
 	/**
 	 * Checks if the current client requests identity is already associated with a user

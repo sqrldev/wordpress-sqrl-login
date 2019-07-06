@@ -37,9 +37,15 @@ Special thanks to:
 
 == Screenshots ==
 1. Login screen with enabled SQRL Login
-2. Profile screen with enabled SQRL Login
+2. Profile screen when no SQRL identity is associated
+3. Profile screen with SQRL identity is associated
 
 == Changelog ==
+
+Version 0.6.3
+
+Improvements
+* Visualize enabling, disabling and removing better.
 
 Version 0.6.2
 
