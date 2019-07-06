@@ -41,6 +41,11 @@ Special thanks to:
 
 == Changelog ==
 
+Version 0.6.2
+
+Bugfixes
+* User association fix.
+
 Version 0.6.1
 
 Bugfixes

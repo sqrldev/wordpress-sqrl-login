@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.6.1
+ * Version:           0.6.2
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -199,7 +199,7 @@ class SQRLLogin{
 			), 15 * 60);
         } else {
 			set_transient($session, array(
-				'user_id'     => -1,
+				'user_id'     => false,
 				'ip_address'   => $this->getClientIP(),
 			), 15 * 60);
 		}
