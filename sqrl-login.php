@@ -46,7 +46,10 @@ class SQRLLogin{
 		add_action( 'admin_post_sqrl_disassociate', array($this, 'disAssociateUser') );
 
 		add_action( 'login_enqueue_scripts', array($this, 'enqueue_scripts') );
-		add_action( 'admin_enqueue_scripts', array($this, 'enqueue_scripts') );
+        add_action( 'admin_enqueue_scripts', array($this, 'enqueue_scripts') );
+
+        add_action( 'wp_login', array($this, 'user_login'), 10, 2 );
+        add_filter( 'login_message', array($this, 'user_login_message') );
 	}
 
 	public function enqueue_scripts() {
@@ -60,8 +63,11 @@ class SQRLLogin{
 	function associateSQRL($user) {
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
+        $sqrl_settings_title = __('SQRL settings', 'sqrl');
+        $disassociate_button = __('Disassociate', 'sqrl');
+
 		?>
-		<h3>Associate SQRL to profile</h3>
+		<h3><?php echo $sqrl_settings_title ?></h3>
 		<?php
 		if(get_user_meta($user->id, 'idk', true)) {
 			?>
@@ -70,8 +76,14 @@ class SQRLLogin{
 					<th>
 					</th>
 					<td>
-						<div class="sqrl-form">
-							<a href="<?php echo $adminPostPath ?>?action=sqrl_disassociate">Disassociate SQRL identity</a>
+                        <div class="sqrl-form">
+							<div class="sqrl-login-row">
+                            	<a class="sqrl-button" href="<?php echo $adminPostPath ?>?action=sqrl_disassociate">
+ 								    <img src="<?php echo plugins_url( 'images/disconnect.svg', __FILE__ ) ?>"/>
+                                	<div><?php echo $disassociate_button ?></div>
+                            	</a>
+							</div>								
+							<?php $this->addToLoginForm($user, true); ?>
 						</div>
 					</td>
 				</tr>
@@ -128,10 +140,26 @@ class SQRLLogin{
 	}
 
 	/**
+	 * Get the current client IP so we can verify it later to be the same when using CPS.
+	 */
+	function getClientIP() {
+		if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+			//check ip from share internet
+			$ip = $_SERVER['HTTP_CLIENT_IP'];
+		} elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+			//to check ip is pass from proxy
+			$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+		} else {
+			$ip = $_SERVER['REMOTE_ADDR'];
+		}
+		return $ip;
+	}
+
+	/**
 	 * Add the SQRL specific code. Used both from the profile screen and the login screen to
 	 * login users or associate them with a specific account.
 	 */
-    public function addToLoginForm($user = false) {
+    public function addToLoginForm($user = false, $associated = false) {
         if (get_option( 'users_can_register' )) {
             $button_label = __('Sign in or Register with SQRL', 'sqrl');
             $qrcode_label = __('You may also sign in or register with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl');
@@ -140,6 +168,11 @@ class SQRLLogin{
             $qrcode_label = __('You may also sign in with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl');
         }
 
+		if ($associated) {
+            $button_label = __('Change your account', 'sqrl');
+            $qrcode_label = __('Scan QR code or click button to change account. Using your client you can disable, enable and remove the account.', 'sqrl');			
+        }
+        
 		$adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
 
 		$siteUrl = explode("://", get_site_url());
@@ -160,8 +193,16 @@ class SQRLLogin{
 		$sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . '-' . $session . $pathLenParam;
 
 		if($user) {
-			set_transient($session, $user->id, 15 * 60);
-        }
+			set_transient($session, array(
+				'user_id'     => $user->id,
+				'ip_address'   => $this->getClientIP(),
+			), 15 * 60);
+        } else {
+			set_transient($session, array(
+				'user_id'     => -1,
+				'ip_address'   => $this->getClientIP(),
+			), 15 * 60);
+		}
 
         wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
         wp_enqueue_script('qrcode', plugin_dir_url(__FILE__).'qrcode.min.js');
@@ -170,13 +211,20 @@ class SQRLLogin{
             'adminURL' => admin_url('admin-post.php'),
             'session' => $session,
 			'existingUserParam' => $user ? "&existingUser=1" : "",
-			'sqrlLoginURL' => $sqrlURL
+			'sqrlLoginURL' => $sqrlURL,
+			'countDownDesc' => __('Will look for QR Login in')
         ));
         wp_enqueue_script('reload');
+
         ?>
 		<div class="sqrl-login-wrapper">
 			<div class="sqrl-login-row">
-				<a id="sqrl" href="<?php echo $sqrlURL ?>" onclick="sqrlLinkClick(this);return true;" encoded-sqrl-url="<?php echo $this->base64url_encode($sqrlURL) ?>" tabindex="-1">
+                <a id="sqrl" 
+				   class="sqrl-button" 
+				   href="<?php echo $sqrlURL ?>" onclick="sqrlLinkClick(this);return true;" 
+				   encoded-sqrl-url="<?php echo $this->base64url_encode($sqrlURL) ?>" 
+				   tabindex="-1"
+				>
 				  <img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ) ?>"/>
 		          <div><?php echo $button_label ?></div>
 				</a>
@@ -302,6 +350,11 @@ class SQRLLogin{
 		$this->onlyAllowBase64URL($_POST['urs']);
 
 		/**
+		 * Reset return value used as the tif (Transaction Information Flags)
+		 */
+		$retVal = 0;
+
+		/**
 		 * Split the client variables into an array so we can use them later.
 		 */
 		$clientStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["client"])));
@@ -328,7 +381,7 @@ class SQRLLogin{
 		if(!$result) {
 			error_log("Incorrect signature");
 			$this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
-		}
+        }
 
         /**
          * Check the user call that we have a valid pewvious if available signature for
@@ -390,10 +443,19 @@ class SQRLLogin{
 		}
 
 		/**
-		 * TODO: More correct check should be implemented later, now we only return the correct code for
-		 * the ip check if needed.
+		 * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
 		 */
-		$retVal = $options["noiptest"] ? 0 : self::IP_MATCHED;
+		$transientSession = get_transient($nutSession[1]);
+		if (empty($transientSession)) {
+			error_log("Missing transient session");
+			$this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
+		}
+
+		if (!$options["noiptest"]) {
+			if (!empty($transientSession["ip_address"]) && $transientSession["ip_address"] == $this->getClientIP()) {
+				$retVal += self::IP_MATCHED;
+			}
+		}
 
 		/**
 		 * Prepare response.
@@ -424,6 +486,9 @@ class SQRLLogin{
 			if($this->accountPresent($client['pidk'])) {
 				$retVal += self::PREVIOUS_ID_MATCH;
 			}
+			if ($this->accountDisabled($client)) {
+				$retVal += self::ACCOUNT_DISABLED;
+            }
 
 		} else if($client['cmd'] == 'ident') {
 			/**
@@ -431,21 +496,33 @@ class SQRLLogin{
 			 * already in the system.
 			 */
 			if(!$this->accountPresent($client['idk'])) {
-				/**
+				/*
 				 * Fetch the current user from the transient session store and remove it as we only keep
 				 * it for the current session.
 				 */
-				$user = get_transient($nutSession[1]);
+				$user = $transientSession["user_id"];
 				delete_transient($nutSession[1]);
 
+				/*
+				 * We need to check if the user is in the transient session before we lookup the user from
+				 * a previous identity. This association is only on already logged in users on the profile page.
+				 */
 				if($user) {
 					$associatedExistingUser = true;
 				}
 
+                /*
+                 * Check if we have a hit on a previous account so we need to update the current identity
+                 * to our new identity identifier.
+                 */
 				if(!$user && $this->accountPresent($client['pidk'])) {
 					$user = $this->getUserId($client['pidk']);
 				}
 
+                /*
+                 * Check if we should associate an old user or create a new one. Checking if registring users
+                 * are allowed on the current installation.
+                 */
 				if($user) {
 					$this->associateUser($user, $client, $nutSession[1]);
 				} else {
@@ -456,7 +533,7 @@ class SQRLLogin{
 					$this->createUser($client, $nutSession[1]);
 				}
 
-				$retVal += 1;
+				$retVal += self::CURRENT_ID_MATCH;
 			}
 
 			/**
@@ -469,9 +546,92 @@ class SQRLLogin{
 			 * to securely login.
 			 */
 			if(strpos($client['opt'], 'cps') !== false) {
-				$response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1] . ($associatedExistingUser ? "&existingUser=1" : "");
+                $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
+                    "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1] .
+                    ($associatedExistingUser ? "&existingUser=1" : "");
+
 				$response[] = "can=" . get_site_url() . "?q=canceled";
+            }
+
+        } else if($client['cmd'] == 'disable') {
+            /*
+             * Fetch user to disable.
+             */
+			$user = $this->getUserId($client['idk']);
+			if (!$user) {
+				$user = $this->getUserId($client['pidk']);
 			}
+
+			if (!$user) {
+                error_log("User is missing, can't disable");
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+            }
+
+            update_user_meta( $user, 'sqrl_disable_user', true);
+
+            $retVal += self::CURRENT_ID_MATCH + self::ACCOUNT_DISABLED;
+
+            $response[] = "suk=" . $this->getServerUnlockKey($client);
+            
+        } else if($client['cmd'] == 'enable') {
+            /*
+             * Fetch user to be enabled.
+             */
+			$user = $this->getUserId($client['idk']);
+			if (!$user) {
+				$user = $this->getUserId($client['pidk']);
+			}
+            if (empty($user)) {
+                error_log("User is missing, can't be enable");
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+            }
+			if (!$this->accountDisabled($client)) {
+                error_log("User is not disabled, can't be enable");
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+            }
+
+            $result = sodium_crypto_sign_verify_detached (
+                $this->base64url_decode(sanitize_text_field($_POST["urs"])),
+                sanitize_text_field($_POST["client"]) . sanitize_text_field($_POST["server"]),
+                $this->base64url_decode($this->getVerifyUnlockKey($client))
+            );        
+            if(!$result) {
+                error_log("Incorrect Unlock Request signature");
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+            }            
+
+            delete_user_meta( $user, 'sqrl_disable_user' );
+
+            $retVal += self::CURRENT_ID_MATCH;
+
+        } else if($client['cmd'] == 'remove') {
+            /*
+             * Fetch user to be removed.
+             */
+			$user = $this->getUserId($client['idk']);
+			if (!$user) {
+				$user = $this->getUserId($client['pidk']);
+			}
+            if (empty($user)) {
+                error_log("User is missing, can't be removed");
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+            }
+			if (!$this->accountDisabled($client)) {
+                error_log("User is not disabled, can't be removed");
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+            }
+
+            $result = sodium_crypto_sign_verify_detached (
+                $this->base64url_decode(sanitize_text_field($_POST["urs"])),
+                sanitize_text_field($_POST["client"]) . sanitize_text_field($_POST["server"]),
+                $this->base64url_decode($this->getVerifyUnlockKey($client))
+            );        
+            if(!$result) {
+                error_log("Incorrect Unlock Request signature");
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+            } 			
+			
+			wp_delete_user( $user );
 		} else {
 			/**
 			 * If we have an unknown command, Not implemented yet we should print the client request and die.
@@ -493,6 +653,62 @@ class SQRLLogin{
         echo $this->base64url_encode(implode("\r\n", $response));
     }
 
+	/**
+     * Check if a user account is disabled.
+     */
+	public function accountDisabled($client) {
+		/*
+         * Fetch user to check.
+         */
+		$user = $this->getUserId($client['idk']);
+		if (!$user) {
+			$user = $this->getUserId($client['pidk']);
+		}
+		if(!$user) {
+			return false;
+		}
+		return get_user_meta( $user, 'sqrl_disable_user', true);
+	}
+
+    /**
+     * This will disable login for disabled users.
+     *
+     * Code inspired by https://github.com/jaredatch/Disable-Users
+     */
+	public function user_login( $user_login, $user = null ) {
+		if ( !$user ) {
+			$user = get_user_by('login', $user_login);
+		}
+		if ( !$user ) {
+			// not logged in - definitely not disabled
+			return;
+		}
+		// Get user meta
+		$disabled = get_user_meta( $user->ID, 'sqrl_disable_user', true );
+
+		// Is the use logging in disabled?
+		if ( $disabled == '1' ) {
+			// Clear cookies, a.k.a log user out
+			wp_clear_auth_cookie();
+			// Build login URL and then redirect
+			$login_url = site_url( 'wp-login.php', 'login' );
+			$login_url = add_query_arg( 'disabled', '1', $login_url );
+			wp_redirect( $login_url );
+			exit;
+		}
+    }
+
+    /**
+     * This will show a message that the user account is disabled.
+     *
+     * Code inspired by https://github.com/jaredatch/Disable-Users
+     */
+	public function user_login_message( $message ) {
+		// Show the error message if it seems to be a disabled user
+		if ( isset( $_GET['disabled'] ) && $_GET['disabled'] == 1 )
+			$message =  '<div id="login_error">' . apply_filters( 'ja_disable_users_notice', __( 'Account disabled', 'ja_disable_users' ) ) . '</div>';
+		return $message;
+	}
 
 	/**
 	 * This function returns the server url without path
@@ -615,7 +831,26 @@ class SQRLLogin{
 		));
 
 		return get_user_meta($wp_users[0], "suk", true);
-	}
+    }
+    
+	/**
+	 * Gets the verify unlock code, saved for the user we can verify special
+     * operations like enabling and removing accounts.
+	 */
+	private function getVerifyUnlockKey($client) {
+		if(empty($client['idk'])) return false;
+
+		$wp_users = get_users(array(
+			'meta_key'     => 'idk',
+			'meta_value'   => sanitize_text_field($client['idk']),
+			'number'       => 1,
+			'count_total'  => false,
+			'fields'       => 'id',
+		));
+
+		return get_user_meta($wp_users[0], "vuk", true);
+    }    
+    
 
 	/**
 	 * Checks if the current client requests identity is already associated with a user

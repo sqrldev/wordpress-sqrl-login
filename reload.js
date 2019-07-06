@@ -4,7 +4,7 @@ setInterval(function() {
 var countDown = 5;
 
 setInterval(function() {
-	document.getElementById('reloadDisplay').innerHTML = 'Will look for QR Login in ' + countDown;
+	document.getElementById('reloadDisplay').innerHTML = sqrlReload.countDownDesc + ' ' + countDown;
 	if(countDown <= 0) {
 		fetch(sqrlReload.adminURL + '?action=sqrl_check_login&session=' + sqrlReload.session)
 			.then((res) => {
