@@ -35,6 +35,11 @@ In other cases you will want to be known, like when you use SQRL to login as you
 
 == Changelog ==
 
+Version 0.5.1
+
+Bugfixes
+* Handle new strpos function requirements in PHP 7.3
+
 Version 0.5.0
 
 Features

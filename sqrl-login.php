@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.5.0
+ * Version:           0.5.1
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -150,7 +150,7 @@ class SQRLLogin{
 
 		$slashPos = strpos($domainName, '/');
 		$pathLenParam = "";
-		if ($slashPos != -1) {
+		if ($slashPos !== false) {
 			$pathLenParam = '&x=' . (strlen($domainName) - $slashPos);
 			$domainName = substr($domainName, 0, $slashPos);
 		}
