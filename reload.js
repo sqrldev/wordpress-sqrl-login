@@ -20,3 +20,12 @@ setInterval(function() {
 	}
 	countDown--;
 }, 1000);
+
+var qrcode = new QRCode(document.getElementById("sqrl-qrcode"), {
+	text: sqrlReload.sqrlLoginURL,
+	width: 128,
+	height: 128,
+	colorDark : "#000000",
+	colorLight : "#ffffff",
+	correctLevel : QRCode.CorrectLevel.M
+});

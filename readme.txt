@@ -24,6 +24,8 @@ You may choose to remain anonymous to a website, such as when you post a respons
 
 In other cases you will want to be known, like when you use SQRL to login as you at Amazon, Facebook, Netflix, or your bank. In those cases, you would inform Amazon that that particular code is actually you. SQRL lets you do that.
 
+Special thanks to @davidshimjs for writing a great javascript library for QRCode creation. (https://github.com/davidshimjs/qrcodejs)
+
 == Installation ==
 1. Ensure that your site is using SSL. It's using a https connection.
 2. Install the plugin.
@@ -34,6 +36,11 @@ In other cases you will want to be known, like when you use SQRL to login as you
 1. Login screen with enabled SQRL Login
 
 == Changelog ==
+
+Version 0.6.0
+
+Features
+* Using a javascript library to create QRCode
 
 Version 0.5.1
 

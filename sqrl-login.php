@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.5.1
+ * Version:           0.6.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -164,14 +164,15 @@ class SQRLLogin{
         }
 
         wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
+        wp_enqueue_script('qrcode', plugin_dir_url(__FILE__).'qrcode.min.js');
         wp_register_script('reload', plugin_dir_url(__FILE__).'reload.js');
         wp_localize_script('reload', 'sqrlReload', array(
             'adminURL' => admin_url('admin-post.php'),
             'session' => $session,
-			'existingUserParam' => $user ? "&existingUser=1" : ""
+			'existingUserParam' => $user ? "&existingUser=1" : "",
+			'sqrlLoginURL' => $sqrlURL
         ));
         wp_enqueue_script('reload');
-
         ?>
 		<div class="sqrl-login-wrapper">
 			<div class="sqrl-login-row">
@@ -181,7 +182,7 @@ class SQRLLogin{
 				</a>
 			</div>
 			<div class="sqrl-login-row">
-				<img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chld=M|0&chl=<?php echo urlencode($sqrlURL) ?>"/>
+                <div id="sqrl-qrcode"></div>
 				<div><?php echo $qrcode_label ?></div>
 			</div>
 			<div class="sqrl-login-row">
