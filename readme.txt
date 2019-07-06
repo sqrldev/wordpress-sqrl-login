@@ -41,6 +41,11 @@ Special thanks to:
 
 == Changelog ==
 
+Version 0.6.1
+
+Bugfixes
+* Fixing styling issues.
+
 Version 0.6.0
 
 Features

@@ -6,6 +6,10 @@
     width: 320px;
 }
 
+#sqrl-qrcode {
+	padding: 10px;
+}
+
 .sqrl-login-row {
     display: flex;
     flex-direction: row;
@@ -30,9 +34,10 @@
     background: #007CC3;
     border-radius: 5px;
     padding: 10px 20px;
-    margin: 0 10px;
+    margin: 0 10px 10px 10px;
     color: white;
     text-decoration: none;
+    width: 100%;
 }
 .sqrl-button img {
     width: 20px;
