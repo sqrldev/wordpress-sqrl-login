@@ -42,6 +42,12 @@ Special thanks to:
 
 == Changelog ==
 
+Version 0.6.4
+
+Improvements
+* Added content length
+* Added path length for all return qry
+
 Version 0.6.3
 
 Improvements
