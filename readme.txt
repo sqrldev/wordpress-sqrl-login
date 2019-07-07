@@ -42,6 +42,12 @@ Special thanks to:
 
 == Changelog ==
 
+Version 0.7.0
+
+Features
+* Handle redirect urls.
+* Fix content length.
+
 Version 0.6.4
 
 Improvements

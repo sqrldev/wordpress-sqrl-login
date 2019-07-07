@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.6.4
+ * Version:           0.7.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -211,12 +211,14 @@ class SQRLLogin {
         if($user) {
             set_transient($session, array(
                 'user_id'     => $user->id,
-                'ip_address'   => $this->getClientIP(),
+                'ip_address'  => $this->getClientIP(),
+                'redirect_to' => sanitize_text_field($_GET["redirect_to"])
             ), 15 * 60);
         } else {
             set_transient($session, array(
                 'user_id'     => false,
                 'ip_address'   => $this->getClientIP(),
+                'redirect_to' => sanitize_text_field($_GET["redirect_to"])
             ), 15 * 60);
         }
 
@@ -326,12 +328,17 @@ class SQRLLogin {
             $this->logoutWithMessage(self::MESSAGE_REMOVED);
         }
 
+        $redirectTo = get_user_meta( $wp_users[0], 'sqrl_redirect_to', true);
+
         delete_user_meta( $wp_users[0], 'sqrl_session');
+        delete_user_meta( $wp_users[0], 'sqrl_redirect_to');
         wp_set_auth_cookie( $wp_users[0] );
 
         $disabled = get_user_meta( $wp_users[0], 'sqrl_disable_user', true);
         if ($disabled) {
             $this->logoutWithMessage(self::MESSAGE_DISABLED);
+        } else if ($redirectTo) {
+            header("Location: " . $redirectTo, true);
         } else if (!empty($_GET['existingUser'])) {
             header("Location: " . admin_url('profile.php'), true);
         } else {
@@ -361,7 +368,7 @@ class SQRLLogin {
 
         $content = $this->base64url_encode(implode("\r\n", $response));
         header('Content-Type: application/x-www-form-urlencoded');
-        header('Content-Length: ' . count($content));
+        header('Content-Length: ' . strlen($content));
         echo $content;
         exit();
     }
@@ -536,6 +543,8 @@ class SQRLLogin {
             }
 
         } else if($client['cmd'] == 'ident') {
+            $redirectTo = $transientSession["redirect_to"];
+
             /**
              * Identify with the system either creating a new user or authorizing login with a user
              * already in the system.
@@ -584,7 +593,7 @@ class SQRLLogin {
             /**
              * Add session data signaling to the reload.js script that a login has been successfully transacted.
              */
-            $this->addUserSession($client, $server);
+            $this->addUserSession($client, $server, $redirectTo);
 
             /**
              * If Client Provided Session is enabled we need to respond with links for the client to follow in order
@@ -727,7 +736,7 @@ class SQRLLogin {
          */
         $content = $this->base64url_encode(implode("\r\n", $response));
         header('Content-Type: application/x-www-form-urlencoded');
-        header('Content-Length: ' . count($content));
+        header('Content-Length: ' . strlen($content));
         echo $content;
     }
 
@@ -853,6 +862,7 @@ class SQRLLogin {
         delete_user_meta( $user->id, 'suk');
         delete_user_meta( $user->id, 'vuk');
         delete_user_meta( $user->id, 'sqrl_session');
+        delete_user_meta( $user->id, 'sqrl_redirect_to');
 
         header("Location: " . admin_url('profile.php'), true);
     }
@@ -861,7 +871,7 @@ class SQRLLogin {
      * Used to add the temporary sqrl_session value indicate a correct authentication so reload.js
      * could reload the client and login the user.
      */
-    private function addUserSession($client, $server) {
+    private function addUserSession($client, $server, $redirectTo = false) {
         $wp_users = get_users(array(
             'meta_key'     => 'idk',
             'meta_value'   => sanitize_text_field($client['idk']),
@@ -873,6 +883,7 @@ class SQRLLogin {
         $nutSession = explode('-', $server["nut"]);
 
         update_user_meta( $wp_users[0], 'sqrl_session', $nutSession[1] );
+        update_user_meta( $wp_users[0], 'sqrl_redirect_to', $redirectTo );
     }
 
     /**
