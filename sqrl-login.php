@@ -58,6 +58,55 @@ class SQRLLogin {
 
         add_action( 'wp_login', array($this, 'userLogin'), 10, 2 );
         add_filter( 'login_message', array($this, 'userLoginMessage') );
+
+        add_action( 'admin_init', array($this, 'registerSettings') );
+        add_action( 'admin_menu', array($this, 'registerOptionsPage') );
+    }
+
+    function registerSettings() {
+        add_option( 'sqrl_redirect_url', get_site_url() );
+        register_setting( 'sqrl_general', 'sqrl_redirect_url' );
+    }
+
+    function registerOptionsPage() {
+        add_options_page( 'Settings', 'SQRL Login', 'manage_options', 'sqrl_login', array($this, 'optionsPage') );
+    }
+
+    function optionsPage() {
+        $settings_title = __('SQRL Login settings', 'sqrl');
+        $redirect_title = __('Redirect URL', 'sqrl');
+        $redirect_desc = __('This URL is used to redirect the user after login if no redirect_to variable have been set.', 'sqrl');
+        ?>
+        <div class="wpbody-content">
+            <div class="wrap">
+                <?php screen_icon(); ?>
+                <h1><?php echo $settings_title ?></h1>
+                <form method="post" action="options.php">
+                    <?php settings_fields( 'sqrl_general' ); ?>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="sqrl_redirect_url"><?php echo $redirect_title ?></label>
+                            </th>
+                            <td>
+                                <input 
+                                    type="text" 
+                                    id="sqrl_redirect_url" 
+                                    name="sqrl_redirect_url" 
+                                    value="<?php echo get_option('sqrl_redirect_url'); ?>"
+                                    class="regular-text ltr" 
+                                />
+                                <p class="description" id="sqrl_redirect_url_description">
+                                    <?php echo $redirect_desc ?>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                    <?php submit_button(); ?>
+                </form>
+            </div>
+        </div>
+        <?php
     }
 
     public function enqueueScripts() {
@@ -342,7 +391,7 @@ class SQRLLogin {
         } else if (!empty($_GET['existingUser'])) {
             header("Location: " . admin_url('profile.php'), true);
         } else {
-            header("Location: " . get_site_url(), true);
+            header("Location: " . get_option('sqrl_redirect_url'), true);
         }
     }
 
