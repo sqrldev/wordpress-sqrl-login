@@ -42,6 +42,12 @@ Special thanks to:
 
 == Changelog ==
 
+Version 1.0.0
+
+Improvements
+* Update meta_key values to have prefix.
+* Warn users who don't have SSL enabled.
+
 Version 0.8.0
 
 Features

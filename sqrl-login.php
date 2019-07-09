@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           0.8.0
+ * Version:           1.0.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -64,6 +64,25 @@ class SQRLLogin {
 
         add_action( 'admin_init', array($this, 'registerSettings') );
         add_action( 'admin_menu', array($this, 'registerOptionsPage') );
+
+        add_action( 'upgrader_process_complete', array($this, 'upgradeCompleted'), 10, 2 );
+    }
+
+    function upgradeCompleted( $upgrader_object, $options ) {
+        $our_plugin = plugin_basename( __FILE__ );
+        if( $options['action'] == 'update' && $options['type'] == 'plugin' && isset( $options['plugins'] ) ) {
+            foreach( $options['plugins'] as $plugin ) {
+                if( $plugin == $our_plugin ) {
+                    $users = get_users(array('fields' => 'id'));
+                    foreach($users as $user) {
+                        if(!empty(get_user_meta($user, "sqrl_idk", true))) return;
+                        update_user_meta( $user, 'sqrl_idk', get_user_meta($user, "idk", true));
+                        update_user_meta( $user, 'sqrl_suk', get_user_meta($user, "suk", true));
+                        update_user_meta( $user, 'sqrl_vuk', get_user_meta($user, "vuk", true));
+                    }
+                }
+            }
+        }
     }
 
     function registerSettings() {
@@ -92,12 +111,12 @@ class SQRLLogin {
                                 <label for="sqrl_redirect_url"><?php echo $redirect_title ?></label>
                             </th>
                             <td>
-                                <input 
-                                    type="text" 
-                                    id="sqrl_redirect_url" 
-                                    name="sqrl_redirect_url" 
+                                <input
+                                    type="text"
+                                    id="sqrl_redirect_url"
+                                    name="sqrl_redirect_url"
                                     value="<?php echo get_option('sqrl_redirect_url'); ?>"
-                                    class="regular-text ltr" 
+                                    class="regular-text ltr"
                                 />
                                 <p class="description" id="sqrl_redirect_url_description">
                                     <?php echo $redirect_desc ?>
@@ -130,7 +149,7 @@ class SQRLLogin {
         ?>
         <h3><?php echo $sqrl_settings_title ?></h3>
         <?php
-        if(get_user_meta($user->id, 'idk', true)) {
+        if(get_user_meta($user->id, 'sqrl_idk', true)) {
             ?>
             <table class="form-table">
                 <tr>
@@ -568,7 +587,7 @@ class SQRLLogin {
 
         /**
          * Get the a new random nut
-         */ 
+         */
         $nut = $this->generateRandomString();
 
         /**
@@ -833,7 +852,7 @@ class SQRLLogin {
     /**
      * Check if a user account is disabled.
      */
-    public function accountDisabled($client) {
+    private function accountDisabled($client) {
         /*
          * Fetch user to check.
          */
@@ -889,13 +908,20 @@ class SQRLLogin {
      * Code inspired by https://github.com/jaredatch/Disable-Users
      */
     public function userLoginMessage( $message ) {
-        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_DISABLED )
+        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_DISABLED ) {
             $message =  '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
-        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_REMOVED )
+        }
+        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_REMOVED ) {
             $message =  '<div id="login_error">' . __( 'Account removed', 'sqrl' ) . '</div>';
-        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_SQRLONLY )
+        }
+        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_SQRLONLY ) {
             $message =  '<div id="login_error">' . __( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
-            
+        }
+
+        if (!is_ssl()) {
+            $message .=  '<div id="login_error">' . __( 'SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.', 'sqrl' ) . '</div>';
+        }
+
         return $message;
     }
 
@@ -939,9 +965,9 @@ class SQRLLogin {
      * 		 when an disabled account should be enabled again.
      */
     private function associateUser($user, $client) {
-        update_user_meta( $user, 'idk', sanitize_text_field($client['idk']));
-        update_user_meta( $user, 'suk', sanitize_text_field($client['suk']));
-        update_user_meta( $user, 'vuk', sanitize_text_field($client['vuk']));
+        update_user_meta( $user, 'sqrl_idk', sanitize_text_field($client['idk']));
+        update_user_meta( $user, 'sqrl_suk', sanitize_text_field($client['suk']));
+        update_user_meta( $user, 'sqrl_vuk', sanitize_text_field($client['vuk']));
     }
 
     /**
@@ -958,9 +984,9 @@ class SQRLLogin {
     public function disAssociateUser() {
         $user = wp_get_current_user();
 
-        delete_user_meta( $user->id, 'idk');
-        delete_user_meta( $user->id, 'suk');
-        delete_user_meta( $user->id, 'vuk');
+        delete_user_meta( $user->id, 'sqrl_idk');
+        delete_user_meta( $user->id, 'sqrl_suk');
+        delete_user_meta( $user->id, 'sqrl_vuk');
         delete_user_meta( $user->id, 'sqrl_session');
         delete_user_meta( $user->id, 'sqrl_redirect_to');
 
@@ -973,7 +999,7 @@ class SQRLLogin {
      */
     private function addUserSession($client, $transientSession, $redirectTo = false) {
         $wp_users = get_users(array(
-            'meta_key'     => 'idk',
+            'meta_key'     => 'sqrl_idk',
             'meta_value'   => sanitize_text_field($client['idk']),
             'number'       => 1,
             'count_total'  => false,
@@ -993,7 +1019,7 @@ class SQRLLogin {
         if(empty($idkVal)) return false;
 
         $wp_users = get_users(array(
-            'meta_key'     => 'idk',
+            'meta_key'     => 'sqrl_idk',
             'meta_value'   => sanitize_text_field($idkVal),
             'number'       => 1,
             'count_total'  => false,
@@ -1012,14 +1038,14 @@ class SQRLLogin {
         if(empty($client['idk'])) return false;
 
         $wp_users = get_users(array(
-            'meta_key'     => 'idk',
+            'meta_key'     => 'sqrl_idk',
             'meta_value'   => sanitize_text_field($client['idk']),
             'number'       => 1,
             'count_total'  => false,
             'fields'       => 'id',
         ));
 
-        return get_user_meta($wp_users[0], "suk", true);
+        return get_user_meta($wp_users[0], "sqrl_suk", true);
     }
 
     /**
@@ -1030,14 +1056,14 @@ class SQRLLogin {
         if(empty($client['idk'])) return false;
 
         $wp_users = get_users(array(
-            'meta_key'     => 'idk',
+            'meta_key'     => 'sqrl_idk',
             'meta_value'   => sanitize_text_field($client['idk']),
             'number'       => 1,
             'count_total'  => false,
             'fields'       => 'id',
         ));
 
-        return get_user_meta($wp_users[0], "vuk", true);
+        return get_user_meta($wp_users[0], "sqrl_vuk", true);
     }
 
 
@@ -1049,7 +1075,7 @@ class SQRLLogin {
         if(empty($idkVal)) return false;
 
         $wp_users = get_users(array(
-            'meta_key'     => 'idk',
+            'meta_key'     => 'sqrl_idk',
             'meta_value'   => sanitize_text_field($idkVal),
             'number'       => 1,
             'count_total'  => false,
