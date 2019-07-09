@@ -28,6 +28,7 @@ class SQRLLogin {
      */
     const MESSAGE_DISABLED = '1';
     const MESSAGE_REMOVED = '2';
+    const MESSAGE_SQRLONLY = '3';
 
     const SESSION_TIMEOUT = 15 * 60;
 
@@ -124,6 +125,7 @@ class SQRLLogin {
 
         $sqrl_settings_title = __('SQRL settings', 'sqrl');
         $disassociate_button = __('Disassociate', 'sqrl');
+        $hardlock_disclaimer = __('The hardlock option is set on this account but there is no real way to assure that it\'s honored by all WordPress implementations.', 'sqrl');
 
         ?>
         <h3><?php echo $sqrl_settings_title ?></h3>
@@ -135,6 +137,11 @@ class SQRLLogin {
                     <th>
                     </th>
                     <td>
+                        <?php if (get_user_meta($user->id, 'sqrl_hardlock', true)) { ?>
+                            <div class="sqrl-form" style="border-left: 3px solid #dc3232;">
+                                <div class="sqrl-login-row"><?php echo $hardlock_disclaimer ?></div>
+                            </div>
+                        <?php } ?>
                         <div class="sqrl-form">
                             <div class="sqrl-login-row">
                                 <a class="sqrl-button" href="<?php echo $adminPostPath ?>?action=sqrl_disassociate">
@@ -256,6 +263,7 @@ class SQRLLogin {
         list($domainName, $pathLenParam) = $this->getDomainAndPathLength();
 
         $nut = $this->generateRandomString();
+        $session = $this->generateRandomString();
         $sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . $pathLenParam;
 
         if($user) {
@@ -494,7 +502,7 @@ class SQRLLogin {
             $result = sodium_crypto_sign_verify_detached (
                 $this->base64url_decode(sanitize_text_field($_POST["pids"])),
                 sanitize_text_field($_POST["client"]) . sanitize_text_field($_POST["server"]),
-                $this->base64url_decode($client["pidk"])
+                $this->base64url_decode(sanitize_text_field($client["pidk"]))
             );
             if(!$result) {
                 error_log("Incorrect previous signature");
@@ -557,6 +565,11 @@ class SQRLLogin {
                 $retVal += self::IP_MATCHED;
             }
         }
+
+        /**
+         * Get the a new random nut
+         */ 
+        $nut = $this->generateRandomString();
 
         /**
          * Prepare response.
@@ -627,13 +640,13 @@ class SQRLLogin {
                  * are allowed on the current installation.
                  */
                 if($user) {
-                    $this->associateUser($user, $client, $nutSession[1]);
+                    $this->associateUser($user, $client);
                 } else {
                     if (!get_option( 'users_can_register' )) {
                         $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
                     }
 
-                    $this->createUser($client, $nutSession[1]);
+                    $this->createUser($client);
                 }
             }
 
@@ -655,7 +668,7 @@ class SQRLLogin {
              */
             if(strpos($client['opt'], 'cps') !== false) {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
-                    "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1] .
+                    "?action=sqrl_login&nut=" . $nut .
                     ($associatedExistingUser ? "&existingUser=1" : "");
 
                 $response[] = "can=" . get_site_url() . "?q=canceled";
@@ -736,7 +749,7 @@ class SQRLLogin {
              */
             if(strpos($client['opt'], 'cps') !== false) {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
-                    "?action=sqrl_login&nut=" . $nutSession[0] . '-' . $nutSession[1];
+                    "?action=sqrl_login&nut=" . $nut;
                 $response[] = "can=" . get_site_url() . "?q=canceled";
             }
         } else if($client['cmd'] == 'remove') {
@@ -780,16 +793,20 @@ class SQRLLogin {
         }
 
         /**
+         * Set the extra options for users preferences.
+         */
+        $this->updateOptions($client, $options);
+
+        /**
          * Set the status condition code for this call.
          */
         $response[] = "tif=" . dechex($retVal);
         $response[] = "sin=0";
 
-        /**
-         * Get the a new random nut, prepare the return values and set the transient session
+        /*
+         * Prepare the return values and set the transient session
          * where we keep all the session information.
          */
-        $nut = $this->generateRandomString();
         $response[] = "nut=" . $nut;
         $response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nut . $pathLenParam;
         set_transient($nut, $transientSession, self::SESSION_TIMEOUT);
@@ -801,6 +818,16 @@ class SQRLLogin {
         header('Content-Type: application/x-www-form-urlencoded');
         header('Content-Length: ' . strlen($content));
         echo $content;
+    }
+
+    /**
+     * Update user preferences.
+     */
+    private function updateOptions($client, $options) {
+        $user = $this->getUserId($client['idk']);
+
+        update_user_meta( $user, 'sqrl_sqrlonly', $options['sqrlonly']);
+        update_user_meta( $user, 'sqrl_hardlock', $options['hardlock']);
     }
 
     /**
@@ -835,14 +862,22 @@ class SQRLLogin {
         }
         // Get user meta
         $disabled = get_user_meta( $user->ID, 'sqrl_disable_user', true );
+        $sqrlonly = get_user_meta( $user->ID, 'sqrl_sqrlonly', true );
 
         // Is the use logging in disabled?
-        if ( $disabled == '1' ) {
+        if ( $disabled == '1' || $sqrlonly == '1') {
             // Clear cookies, a.k.a log user out
             wp_clear_auth_cookie();
             // Build login URL and then redirect
             $login_url = site_url( 'wp-login.php', 'login' );
-            $login_url = add_query_arg( 'message', self::MESSAGE_DISABLED, $login_url );
+
+            if( $disabled == '1' ) {
+                $login_url = add_query_arg( 'message', self::MESSAGE_DISABLED, $login_url );
+            }
+            if( $sqrlonly == '1' ) {
+                $login_url = add_query_arg( 'message', self::MESSAGE_SQRLONLY, $login_url );
+            }
+
             wp_redirect( $login_url );
             exit;
         }
@@ -858,7 +893,9 @@ class SQRLLogin {
             $message =  '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
         if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_REMOVED )
             $message =  '<div id="login_error">' . __( 'Account removed', 'sqrl' ) . '</div>';
-
+        if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_SQRLONLY )
+            $message =  '<div id="login_error">' . __( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
+            
         return $message;
     }
 
@@ -888,7 +925,7 @@ class SQRLLogin {
             wp_generate_password(),
             $randomUserString . '@localhost'
         );
-        $this->associateUser($new_user, $client, $session);
+        $this->associateUser($new_user, $client);
     }
 
     /**

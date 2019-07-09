@@ -46,6 +46,7 @@ Version 0.8.0
 
 Features
 * Redirect URL setting
+* Handle options hardlock and sqrlonly.
 
 Improvements
 * Better session handling
