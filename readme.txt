@@ -42,6 +42,11 @@ Special thanks to:
 
 == Changelog ==
 
+Version 1.0.3
+
+Bugfixes
+* Removed unreliable upgrade code.
+
 Version 1.0.0
 
 Improvements
