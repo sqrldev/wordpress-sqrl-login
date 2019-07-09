@@ -29,6 +29,8 @@ class SQRLLogin {
     const MESSAGE_DISABLED = '1';
     const MESSAGE_REMOVED = '2';
 
+    const SESSION_TIMEOUT = 15 * 60;
+
     /**
      * SQRLLogin constructor.
      *
@@ -192,7 +194,7 @@ class SQRLLogin {
     /**
      * Creates random string value of any length (default 16) with characters between 0-9, a-z and A-Z.
      */
-    function generateRandomString($length = 16) {
+    function generateRandomString($length = 32) {
         return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) )),1,$length);
     }
 
@@ -253,22 +255,23 @@ class SQRLLogin {
 
         list($domainName, $pathLenParam) = $this->getDomainAndPathLength();
 
-        $session = $this->generateRandomString();
         $nut = $this->generateRandomString();
-        $sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . '-' . $session . $pathLenParam;
+        $sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . $pathLenParam;
 
         if($user) {
-            set_transient($session, array(
+            set_transient($nut, array(
                 'user_id'     => $user->id,
                 'ip_address'  => $this->getClientIP(),
-                'redirect_to' => sanitize_text_field($_GET["redirect_to"])
-            ), 15 * 60);
+                'redirect_to' => sanitize_text_field($_GET["redirect_to"]),
+                'session'     => $session
+            ), self::SESSION_TIMEOUT);
         } else {
-            set_transient($session, array(
+            set_transient($nut, array(
                 'user_id'     => false,
-                'ip_address'   => $this->getClientIP(),
-                'redirect_to' => sanitize_text_field($_GET["redirect_to"])
-            ), 15 * 60);
+                'ip_address'  => $this->getClientIP(),
+                'redirect_to' => sanitize_text_field($_GET["redirect_to"]),
+                'session'     => $session
+            ), self::SESSION_TIMEOUT);
         }
 
         wp_enqueue_script('pagesync', plugin_dir_url(__FILE__).'pagesync.js');
@@ -358,11 +361,12 @@ class SQRLLogin {
         // If the string is not Base64URL encoded, die here and don't process code below.
         $this->onlyAllowBase64URL($_GET['nut']);
 
-        // These lines of code will only run on a get variables are Base64URL encoded, due to the lines above.
         $session = sanitize_text_field($_GET['session']);
         if(empty($session)) {
-            $nutSession = explode('-', sanitize_text_field($_GET["nut"]));
-            $session = $nutSession[1];
+            $nut = sanitize_text_field($_GET['nut']);
+            $transientSession = get_transient($nut);
+            delete_transient($nut);
+            $session = $transientSession["session"];
         }
 
         $wp_users = get_users(array(
@@ -398,24 +402,24 @@ class SQRLLogin {
     /**
      * Return with information to the server about the error that occured.
      */
-    public function exitWithErrorCode($retVal, $server) {
+    public function exitWithErrorCode($retVal, $transientSession) {
         $response = array();
         $response[] = "ver=1";
         $response[] = "tif=" . dechex($retVal);
         $response[] = "sin=0";
 
-        $nutSession = explode('-', $server["nut"]);
-        if(count($nutSession) == 2) {
-            $nutSession[0] = $this->generateRandomString();
-
+        if($transientSession) {
             list(, $pathLenParam) = $this->getDomainAndPathLength();
 
+            $nut = $this->generateRandomString();
+            set_transient($nut, $transientSession, self::SESSION_TIMEOUT);
+
             $adminPostPath = parse_url(admin_url('admin-post.php'), PHP_URL_PATH);
-            $response[] = "nut=" . $nutSession[0] . '-' . $nutSession[1];
-            $response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nutSession[0] . '-' . $nutSession[1] . $pathLenParam;
+            $response[] = "nut=" . $nut;
+            $response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nut . $pathLenParam;
         }
 
-        $content = $this->base64url_encode(implode("\r\n", $response));
+        $content = $this->base64url_encode(implode("\r\n", $response) . "\r\n");
         header('Content-Type: application/x-www-form-urlencoded');
         header('Content-Length: ' . strlen($content));
         echo $content;
@@ -479,7 +483,7 @@ class SQRLLogin {
         );
         if(!$result) {
             error_log("Incorrect signature");
-            $this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
+            $this->exitWithErrorCode(self::CLIENT_FAILURE);
         }
 
         /**
@@ -494,7 +498,7 @@ class SQRLLogin {
             );
             if(!$result) {
                 error_log("Incorrect previous signature");
-                $this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
+                $this->exitWithErrorCode(self::CLIENT_FAILURE);
             }
         }
 
@@ -519,13 +523,6 @@ class SQRLLogin {
         }
 
         /**
-         * Get the current nut + session value and replace the nut in order to have a
-         * unique random value for each call in order to secure against replay attacks.
-         */
-        $nutSession = explode('-', $server["nut"]);
-        $nutSession[0] = $this->generateRandomString();
-
-        /**
          * Explode the option array with all the SQRL options. Valid values are
          *
          * suk = Request for Server unlock key
@@ -542,9 +539,14 @@ class SQRLLogin {
         }
 
         /**
+         * Fetch the current transient session where we keep all session information.
+         */
+        $transientSession = get_transient($server["nut"]);
+        delete_transient($server["nut"]);
+
+        /**
          * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
          */
-        $transientSession = get_transient($nutSession[1]);
         if (empty($transientSession)) {
             error_log("Missing transient session");
             $this->exitWithErrorCode(self::TRANSIENT_ERROR, $server);
@@ -567,8 +569,7 @@ class SQRLLogin {
         $associatedExistingUser = false;
         $response = array();
         $response[] = "ver=1";
-        $response[] = "nut=" . $nutSession[0] . '-' . $nutSession[1];
-        $response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nutSession[0] . '-' . $nutSession[1] . $pathLenParam;
+
         if($client['cmd'] == 'query') {
             /**
              * Query the system for the current user status.
@@ -604,7 +605,6 @@ class SQRLLogin {
                  * it for the current session.
                  */
                 $user = $transientSession["user_id"];
-                delete_transient($nutSession[1]);
 
                 /*
                  * We need to check if the user is in the transient session before we lookup the user from
@@ -630,7 +630,7 @@ class SQRLLogin {
                     $this->associateUser($user, $client, $nutSession[1]);
                 } else {
                     if (!get_option( 'users_can_register' )) {
-                        $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                        $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
                     }
 
                     $this->createUser($client, $nutSession[1]);
@@ -642,7 +642,7 @@ class SQRLLogin {
             /**
              * Add session data signaling to the reload.js script that a login has been successfully transacted.
              */
-            $this->addUserSession($client, $server, $redirectTo);
+            $this->addUserSession($client, $transientSession, $redirectTo);
 
             /**
              * If Client Provided Session is enabled we need to respond with links for the client to follow in order
@@ -667,7 +667,7 @@ class SQRLLogin {
 
             if (!$user) {
                 error_log("User is missing, can't disable");
-                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
             }
 
             update_user_meta( $user, 'sqrl_disable_user', true);
@@ -687,7 +687,7 @@ class SQRLLogin {
                 /**
                  * Add session data signaling to the reload.js script that a login has been successfully transacted.
                  */
-                $this->addUserSession($client, $server);
+                $this->addUserSession($client, $transientSession);
             }
         } else if($client['cmd'] == 'enable') {
             /*
@@ -699,11 +699,11 @@ class SQRLLogin {
             }
             if (empty($user)) {
                 error_log("User is missing, can't be enable");
-                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
             }
             if (!$this->accountDisabled($client)) {
                 error_log("User is not disabled, can't be enable");
-                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
             }
 
             $result = sodium_crypto_sign_verify_detached (
@@ -713,7 +713,7 @@ class SQRLLogin {
             );
             if(!$result) {
                 error_log("Incorrect Unlock Request signature");
-                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
             }
 
             delete_user_meta( $user, 'sqrl_disable_user' );
@@ -722,8 +722,8 @@ class SQRLLogin {
 
             /**
              * Add session data signaling to the reload.js script that a login has been successfully transacted.
-                */
-            $this->addUserSession($client, $server);
+             */
+            $this->addUserSession($client, $transientSession);
 
             /**
              * If Client Provided Session is enabled we need to respond with links for the client to follow in order
@@ -744,7 +744,7 @@ class SQRLLogin {
             }
             if (empty($user)) {
                 error_log("User is missing, can't be removed");
-                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
             }
 
             $result = sodium_crypto_sign_verify_detached (
@@ -754,7 +754,7 @@ class SQRLLogin {
             );
             if(!$result) {
                 error_log("Incorrect Unlock Request signature");
-                $this->exitWithErrorCode(self::COMMAND_FAILED, $server);
+                $this->exitWithErrorCode(self::COMMAND_FAILED, $transientSession);
             }
 
             /**
@@ -771,7 +771,7 @@ class SQRLLogin {
              * If we have an unknown command, Not implemented yet we should print the client request and die.
              */
             error_log(print_r($client, true));
-            $this->exitWithErrorCode(self::FUNCTION_NOT_SUPPORTED, $server);
+            $this->exitWithErrorCode(self::FUNCTION_NOT_SUPPORTED, $transientSession);
         }
 
         /**
@@ -781,9 +781,18 @@ class SQRLLogin {
         $response[] = "sin=0";
 
         /**
+         * Get the a new random nut, prepare the return values and set the transient session
+         * where we keep all the session information.
+         */
+        $nut = $this->generateRandomString();
+        $response[] = "nut=" . $nut;
+        $response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nut . $pathLenParam;
+        set_transient($nut, $transientSession, self::SESSION_TIMEOUT);
+
+        /**
          * Display the result as an base64url encoded string.
          */
-        $content = $this->base64url_encode(implode("\r\n", $response));
+        $content = $this->base64url_encode(implode("\r\n", $response) . "\r\n");
         header('Content-Type: application/x-www-form-urlencoded');
         header('Content-Length: ' . strlen($content));
         echo $content;
@@ -920,7 +929,7 @@ class SQRLLogin {
      * Used to add the temporary sqrl_session value indicate a correct authentication so reload.js
      * could reload the client and login the user.
      */
-    private function addUserSession($client, $server, $redirectTo = false) {
+    private function addUserSession($client, $transientSession, $redirectTo = false) {
         $wp_users = get_users(array(
             'meta_key'     => 'idk',
             'meta_value'   => sanitize_text_field($client['idk']),
@@ -929,9 +938,7 @@ class SQRLLogin {
             'fields'       => 'id',
         ));
 
-        $nutSession = explode('-', $server["nut"]);
-
-        update_user_meta( $wp_users[0], 'sqrl_session', $nutSession[1] );
+        update_user_meta( $wp_users[0], 'sqrl_session', $transientSession["session"] );
         update_user_meta( $wp_users[0], 'sqrl_redirect_to', $redirectTo );
     }
 

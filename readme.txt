@@ -42,6 +42,17 @@ Special thanks to:
 
 == Changelog ==
 
+Version 0.8.0
+
+Features
+* Redirect URL setting
+
+Improvements
+* Better session handling
+
+Bugfixes
+* Added line-break after last line.
+
 Version 0.7.0
 
 Features
