@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -65,20 +65,23 @@ class SQRLLogin {
         add_action( 'admin_init', array($this, 'registerSettings') );
         add_action( 'admin_menu', array($this, 'registerOptionsPage') );
 
-        upgradeCompleted();
+        add_action( 'upgrader_process_complete', array($this, 'upgradeCompleted'), 10, 2 );
     }
 
-    function upgradeCompleted() {
-        if(get_transient("sqrl_upgraded")) return;
-        $users = get_users(array('fields' => 'id'));
-        foreach($users as $user) {
-            if(!empty(get_user_meta($user, "sqrl_idk", true))) {
-                set_transient("sqrl_upgraded", true, 24 * 60 * 60);
-                return;
+    function upgradeCompleted( $upgrader_object, $options ) {
+        $our_plugin = plugin_basename( __FILE__ );
+        if( $options['action'] == 'update' && $options['type'] == 'plugin' && isset( $options['plugins'] ) ) {
+            foreach( $options['plugins'] as $plugin ) {
+                if( $plugin == $our_plugin ) {                                        
+                    $users = get_users(array('fields' => 'id'));
+                    foreach($users as $user) {
+                        if(!empty(get_user_meta($user, "sqrl_idk", true))) return;
+                        update_user_meta( $user, 'sqrl_idk', get_user_meta($user, "idk", true));
+                        update_user_meta( $user, 'sqrl_suk', get_user_meta($user, "suk", true));
+                        update_user_meta( $user, 'sqrl_vuk', get_user_meta($user, "vuk", true));
+                    }            
+                }
             }
-            update_user_meta( $user, 'sqrl_idk', get_user_meta($user, "idk", true));
-            update_user_meta( $user, 'sqrl_suk', get_user_meta($user, "suk", true));
-            update_user_meta( $user, 'sqrl_vuk', get_user_meta($user, "vuk", true));
         }
     }
 
@@ -108,12 +111,12 @@ class SQRLLogin {
                                 <label for="sqrl_redirect_url"><?php echo $redirect_title ?></label>
                             </th>
                             <td>
-                                <input
-                                    type="text"
-                                    id="sqrl_redirect_url"
-                                    name="sqrl_redirect_url"
+                                <input 
+                                    type="text" 
+                                    id="sqrl_redirect_url" 
+                                    name="sqrl_redirect_url" 
                                     value="<?php echo get_option('sqrl_redirect_url'); ?>"
-                                    class="regular-text ltr"
+                                    class="regular-text ltr" 
                                 />
                                 <p class="description" id="sqrl_redirect_url_description">
                                     <?php echo $redirect_desc ?>
@@ -584,7 +587,7 @@ class SQRLLogin {
 
         /**
          * Get the a new random nut
-         */
+         */ 
         $nut = $this->generateRandomString();
 
         /**
@@ -914,7 +917,7 @@ class SQRLLogin {
         if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_SQRLONLY ) {
             $message =  '<div id="login_error">' . __( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
         }
-
+           
         if (!is_ssl()) {
             $message .=  '<div id="login_error">' . __( 'SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.', 'sqrl' ) . '</div>';
         }
