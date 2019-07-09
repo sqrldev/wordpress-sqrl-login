@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -65,23 +65,20 @@ class SQRLLogin {
         add_action( 'admin_init', array($this, 'registerSettings') );
         add_action( 'admin_menu', array($this, 'registerOptionsPage') );
 
-        add_action( 'upgrader_process_complete', array($this, 'upgradeCompleted'), 10, 2 );
+        upgradeCompleted();
     }
 
-    function upgradeCompleted( $upgrader_object, $options ) {
-        $our_plugin = plugin_basename( __FILE__ );
-        if( $options['action'] == 'update' && $options['type'] == 'plugin' && isset( $options['plugins'] ) ) {
-            foreach( $options['plugins'] as $plugin ) {
-                if( $plugin == $our_plugin ) {
-                    $users = get_users(array('fields' => 'id'));
-                    foreach($users as $user) {
-                        if(!empty(get_user_meta($user, "sqrl_idk", true))) return;
-                        update_user_meta( $user, 'sqrl_idk', get_user_meta($user, "idk", true));
-                        update_user_meta( $user, 'sqrl_suk', get_user_meta($user, "suk", true));
-                        update_user_meta( $user, 'sqrl_vuk', get_user_meta($user, "vuk", true));
-                    }
-                }
+    function upgradeCompleted() {
+        if(get_transient("sqrl_upgraded")) return;
+        $users = get_users(array('fields' => 'id'));
+        foreach($users as $user) {
+            if(!empty(get_user_meta($user, "sqrl_idk", true))) {
+                set_transient("sqrl_upgraded", true, 24 * 60 * 60);
+                return;
             }
+            update_user_meta( $user, 'sqrl_idk', get_user_meta($user, "idk", true));
+            update_user_meta( $user, 'sqrl_suk', get_user_meta($user, "suk", true));
+            update_user_meta( $user, 'sqrl_vuk', get_user_meta($user, "vuk", true));
         }
     }
 
