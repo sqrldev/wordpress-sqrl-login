@@ -1,4 +1,4 @@
-=== sqrl-login ===
+=== SQRL Login ===
 Contributors: kalaspuffar
 Tags: sqrl, login
 Donate link: http://ko-fi.com/danielpersson
