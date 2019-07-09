@@ -52,7 +52,7 @@ Improvements
 * Better session handling
 
 Bugfixes
-* Added line-break after last line.
+* Added line-break after the last line.
 
 Version 0.7.0
 
