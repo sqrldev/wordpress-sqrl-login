@@ -77,7 +77,7 @@ class SQRLLogin {
     function optionsPage() {
         $settings_title = __('SQRL Login settings', 'sqrl');
         $redirect_title = __('Redirect URL', 'sqrl');
-        $redirect_desc = __('This URL is used to redirect the user after login if no redirect_to variable have been set.', 'sqrl');
+        $redirect_desc = __('This URL is used to redirect the user after login if no redirect_to variable has been set.', 'sqrl');
         ?>
         <div class="wpbody-content">
             <div class="wrap">
@@ -635,7 +635,12 @@ class SQRLLogin {
 
                     $this->createUser($client, $nutSession[1]);
                 }
+            }
 
+            /**
+             * Check if user is present in the system after eventual creation of the user.
+             */
+            if($this->accountPresent($client['idk'])) {
                 $retVal += self::CURRENT_ID_MATCH;
             }
 
