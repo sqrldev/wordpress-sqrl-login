@@ -470,7 +470,7 @@ class SQRLLogin {
         $clientStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["client"])));
         $client = array();
         foreach ($clientStr as $k => $v) {
-			[$key, $val] = $this->valuePair($v);
+			list($key, $val) = $this->valuePair($v);
             $client[$key] = $val;
         }
 
@@ -518,13 +518,13 @@ class SQRLLogin {
         $serverStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["server"])));
         if(count($serverStr) == 1) {
             foreach (explode("&", $serverStr[0]) as $k => $v) {
-				[$key, $val] = $this->valuePair($v);
+				list($key, $val) = $this->valuePair($v);
                 $server[$key] = $val;
             }
         } else {
             $server = array();
             foreach ($serverStr as $k => $v) {
-				[$key, $val] = $this->valuePair($v);
+				list($key, $val) = $this->valuePair($v);
                 $server[$key] = $val;
             }
         }
