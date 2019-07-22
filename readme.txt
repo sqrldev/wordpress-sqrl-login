@@ -42,10 +42,14 @@ Special thanks to:
 
 == Changelog ==
 
-Version 1.0.3
+Version 1.1.0
+
+Improvements
+* Use transient session for all login data.
+* Handle case where user registration is not allowed
 
 Bugfixes
-* Removed unreliable upgrade code.
+* Javascript fixes to handle load issues.
 
 Version 1.0.0
 
