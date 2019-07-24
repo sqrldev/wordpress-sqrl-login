@@ -257,9 +257,11 @@ class SQRLLogin {
 
         list($domainName, $pathLenParam) = $this->getDomainAndPathLength();
 
+        $cancelAddr = "&can=" . $this->base64url_encode(get_site_url());
+
         $nut = $this->generateRandomString();
         $session = $this->generateRandomString();
-        $sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . $pathLenParam;
+        $sqrlURL = 'sqrl://' . $domainName . $adminPostPath . '?action=sqrl_auth&nut=' . $nut . $pathLenParam . $cancelAddr;
 
         if($user) {
             set_transient($nut, array(
@@ -421,7 +423,6 @@ class SQRLLogin {
 
 		if($clientProvidedSession) {
 			$response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_ERROR;
-			$response[] = "can=" . get_site_url() . "?q=canceled";
 		}
 
 		error_log("Failed response: " . print_r($response, true));
@@ -667,8 +668,6 @@ class SQRLLogin {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
                     "?action=sqrl_login&nut=" . $nut .
                     ($associatedExistingUser ? "&existingUser=1" : "");
-
-                $response[] = "can=" . get_site_url() . "?q=canceled";
 			} else {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
@@ -705,7 +704,6 @@ class SQRLLogin {
              */
             if($clientProvidedSession) {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_DISABLED;
-                $response[] = "can=" . get_site_url() . "?q=canceled";
             } else {
                 /**
                  * Add session data signaling to the reload.js script that a login has been successfully transacted.
@@ -753,7 +751,6 @@ class SQRLLogin {
             if($clientProvidedSession) {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
                     "?action=sqrl_login&nut=" . $nut;
-                $response[] = "can=" . get_site_url() . "?q=canceled";
             } else {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
@@ -791,7 +788,6 @@ class SQRLLogin {
              */
             if($clientProvidedSession) {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_REMOVED;
-                $response[] = "can=" . get_site_url() . "?q=canceled";
             } else {
 				set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
 			}

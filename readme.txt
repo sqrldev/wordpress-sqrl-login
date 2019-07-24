@@ -42,6 +42,11 @@ Special thanks to:
 
 == Changelog ==
 
+Version 1.1.1
+
+Bugfixes
+* Handle CANcel parameter correctly.
+
 Version 1.1.0
 
 Improvements
