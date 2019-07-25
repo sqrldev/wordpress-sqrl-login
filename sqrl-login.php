@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           1.1.0
+ * Version:           1.1.1
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -29,13 +29,13 @@ class SQRLLogin {
     const MESSAGE_DISABLED = '1';
     const MESSAGE_REMOVED = '2';
     const MESSAGE_SQRLONLY = '3';
-	const MESSAGE_ERROR = '4';
-	const MESSAGE_REGISTRATION_NOT_ALLOWED = '5';
+    const MESSAGE_ERROR = '4';
+    const MESSAGE_REGISTRATION_NOT_ALLOWED = '5';
 
-	const COMMAND_LOGIN = 1;
-	const COMMAND_ENABLE = 2;
-	const COMMAND_DISABLE = 3;
-	const COMMAND_REMOVE = 4;
+    const COMMAND_LOGIN = 1;
+    const COMMAND_ENABLE = 2;
+    const COMMAND_DISABLE = 3;
+    const COMMAND_REMOVE = 4;
 
     const SESSION_TIMEOUT = 15 * 60;
 
@@ -60,8 +60,6 @@ class SQRLLogin {
 
         add_action( 'edit_user_profile', array($this, 'associateSQRL') );
         add_action( 'show_user_profile', array($this, 'associateSQRL') );
-
-        add_action( 'admin_post_sqrl_disassociate', array($this, 'disAssociateUser') );
 
         add_action( 'login_enqueue_scripts', array($this, 'enqueueScripts') );
         add_action( 'admin_enqueue_scripts', array($this, 'enqueueScripts') );
@@ -150,12 +148,6 @@ class SQRLLogin {
                             </div>
                         <?php } ?>
                         <div class="sqrl-form">
-                            <div class="sqrl-login-row">
-                                <a class="sqrl-button" href="<?php echo $adminPostPath ?>?action=sqrl_disassociate">
-                                     <img src="<?php echo plugins_url( 'images/disconnect.svg', __FILE__ ) ?>"/>
-                                    <div><?php echo $disassociate_button ?></div>
-                                </a>
-                            </div>
                             <?php $this->addToLoginForm($user, true); ?>
                         </div>
                     </td>
@@ -370,24 +362,28 @@ class SQRLLogin {
         $sessionKey = sanitize_text_field($_GET['session']);
         if(empty($sessionKey)) {
             $sessionKey = sanitize_text_field($_GET['nut']);
-		}
-		$session = get_transient($sessionKey);
-		delete_transient($sessionKey);
+        }
+        $session = get_transient($sessionKey);
+        delete_transient($sessionKey);
 
-		error_log("Session data: " . print_r($session, true));
+        error_log("Session data: " . print_r($session, true));
 
-		if ($session['cmd'] === self::COMMAND_REMOVE) {
-            $this->logoutWithMessage(self::MESSAGE_REMOVED);
-		}
-		if ($session['err'] === self::MESSAGE_REGISTRATION_NOT_ALLOWED) {
+        if ($session['cmd'] === self::COMMAND_REMOVE) {
+            if (!empty($_GET['existingUser'])) {
+                header("Location: " . admin_url('profile.php'), true);
+            } else {
+                $this->logoutWithMessage(self::MESSAGE_REMOVED);
+            }
+        }
+        if ($session['err'] === self::MESSAGE_REGISTRATION_NOT_ALLOWED) {
             $this->logoutWithMessage(self::MESSAGE_REGISTRATION_NOT_ALLOWED);
-		}
-		if ($session['err'] === self::MESSAGE_ERROR) {
+        }
+        if ($session['err'] === self::MESSAGE_ERROR) {
             $this->logoutWithMessage(self::MESSAGE_ERROR);
-		}
-		if ($session['cmd'] === self::COMMAND_LOGIN || $session['cmd'] === self::COMMAND_ENABLE) {
-	        wp_set_auth_cookie( $session['user'] );
-		}
+        }
+        if ($session['cmd'] === self::COMMAND_LOGIN || $session['cmd'] === self::COMMAND_ENABLE) {
+            wp_set_auth_cookie( $session['user'] );
+        }
 
         $disabled = get_user_meta( $wp_users[0], 'sqrl_disable_user', true);
         if ($disabled) {
@@ -421,11 +417,11 @@ class SQRLLogin {
             $response[] = "qry=" . $adminPostPath . "?action=sqrl_auth&nut=" . $nut . $pathLenParam;
         }
 
-		if($clientProvidedSession) {
-			$response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_ERROR;
-		}
+        if($clientProvidedSession) {
+            $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_ERROR;
+        }
 
-		error_log("Failed response: " . print_r($response, true));
+        error_log("Failed response: " . print_r($response, true));
 
         $content = $this->base64url_encode(implode("\r\n", $response) . "\r\n");
         header('Content-Type: application/x-www-form-urlencoded');
@@ -471,7 +467,7 @@ class SQRLLogin {
         $clientStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["client"])));
         $client = array();
         foreach ($clientStr as $k => $v) {
-			list($key, $val) = $this->valuePair($v);
+            list($key, $val) = $this->valuePair($v);
             $client[$key] = $val;
         }
 
@@ -519,13 +515,13 @@ class SQRLLogin {
         $serverStr = explode("\r\n", $this->base64url_decode(sanitize_text_field($_POST["server"])));
         if(count($serverStr) == 1) {
             foreach (explode("&", $serverStr[0]) as $k => $v) {
-				list($key, $val) = $this->valuePair($v);
+                list($key, $val) = $this->valuePair($v);
                 $server[$key] = $val;
             }
         } else {
             $server = array();
             foreach ($serverStr as $k => $v) {
-				list($key, $val) = $this->valuePair($v);
+                list($key, $val) = $this->valuePair($v);
                 $server[$key] = $val;
             }
         }
@@ -546,7 +542,7 @@ class SQRLLogin {
             $options[$v] = true;
         }
 
-		$clientProvidedSession = strpos($client['opt'], 'cps') !== false;
+        $clientProvidedSession = strpos($client['opt'], 'cps') !== false;
 
         /**
          * Fetch the current transient session where we keep all session information.
@@ -641,13 +637,13 @@ class SQRLLogin {
                  */
                 if($user) {
                     $this->associateUser($user, $client);
-	            } else {
+                } else {
                     if (!get_option( 'users_can_register' )) {
-						$transientSession["err"] = self::MESSAGE_REGISTRATION_NOT_ALLOWED;
+                        $transientSession["err"] = self::MESSAGE_REGISTRATION_NOT_ALLOWED;
                     } else {
-	                    $this->createUser($client);
-					}
-            	}
+                        $this->createUser($client);
+                    }
+                }
             }
 
             /**
@@ -656,8 +652,8 @@ class SQRLLogin {
             if($this->accountPresent($client['idk'])) {
                 $retVal += self::CURRENT_ID_MATCH;
 
-				$transientSession["cmd"] = self::COMMAND_LOGIN;
-				$transientSession["user"] = $this->getUserId($client['idk']);
+                $transientSession["cmd"] = self::COMMAND_LOGIN;
+                $transientSession["user"] = $this->getUserId($client['idk']);
             }
 
             /**
@@ -668,12 +664,12 @@ class SQRLLogin {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
                     "?action=sqrl_login&nut=" . $nut .
                     ($associatedExistingUser ? "&existingUser=1" : "");
-			} else {
-				/**
-				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
-				 */
-				set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
-			}
+            } else {
+                /**
+                 * Add session data signaling to the reload.js script that a login has been successfully transacted.
+                 */
+                set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
+            }
 
         } else if($client['cmd'] == 'disable') {
             /*
@@ -693,8 +689,8 @@ class SQRLLogin {
 
             $retVal += self::CURRENT_ID_MATCH + self::ACCOUNT_DISABLED;
 
-			$transientSession["cmd"] = self::COMMAND_DISABLE;
-			$transientSession["user"] = $user;
+            $transientSession["cmd"] = self::COMMAND_DISABLE;
+            $transientSession["user"] = $user;
 
             $response[] = "suk=" . $this->getServerUnlockKey($client);
 
@@ -708,7 +704,7 @@ class SQRLLogin {
                 /**
                  * Add session data signaling to the reload.js script that a login has been successfully transacted.
                  */
-				set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
+                set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
             }
         } else if($client['cmd'] == 'enable') {
             /*
@@ -741,8 +737,8 @@ class SQRLLogin {
 
             $retVal += self::CURRENT_ID_MATCH;
 
-			$transientSession["cmd"] = self::COMMAND_ENABLE;
-			$transientSession["user"] = $user;
+            $transientSession["cmd"] = self::COMMAND_ENABLE;
+            $transientSession["user"] = $user;
 
             /**
              * If Client Provided Session is enabled we need to respond with links for the client to follow in order
@@ -752,11 +748,11 @@ class SQRLLogin {
                 $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath .
                     "?action=sqrl_login&nut=" . $nut;
             } else {
-				/**
-				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
-				 */
-				set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
-			}
+                /**
+                 * Add session data signaling to the reload.js script that a login has been successfully transacted.
+                 */
+                set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
+            }
         } else if($client['cmd'] == 'remove') {
             /*
              * Fetch user to be removed.
@@ -780,18 +776,23 @@ class SQRLLogin {
                 $this->exitWithErrorCode(self::COMMAND_FAILED, $clientProvidedSession, $transientSession);
             }
 
-			$transientSession["cmd"] = self::COMMAND_REMOVE;
+            $transientSession["cmd"] = self::COMMAND_REMOVE;
 
+            $this->disAssociateUser($user);
             /**
              * If Client Provided Session is enabled we need to respond with links for the client to follow in order
              * to securely login.
              */
             if($clientProvidedSession) {
-                $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_REMOVED;
+                $profilePath = parse_url(admin_url('profile.php'), PHP_URL_PATH);
+                if(!empty($transientSession["user"])) {
+                    $response[] = "url=" . $this->getServerUrlWithoutPath() . $profilePath;
+                } else {
+                    $response[] = "url=" . $this->getServerUrlWithoutPath() . $adminPostPath . '?action=sqrl_logout&message=' . self::MESSAGE_REMOVED;
+                }
             } else {
-				set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
-			}
-            wp_delete_user( $user );
+                set_transient($transientSession["session"], $transientSession, self::SESSION_TIMEOUT);
+            }
         } else {
             /**
              * If we have an unknown command, Not implemented yet we should print the client request and die.
@@ -872,20 +873,15 @@ class SQRLLogin {
         $disabled = get_user_meta( $user->ID, 'sqrl_disable_user', true );
         $sqrlonly = get_user_meta( $user->ID, 'sqrl_sqrlonly', true );
 
-        // Is the use logging in disabled?
-        if ( $disabled == '1' || $sqrlonly == '1') {
-            // Clear cookies, a.k.a log user out
+        if( $disabled == '1' && $sqrlonly == '1') {
             wp_clear_auth_cookie();
-            // Build login URL and then redirect
-            $login_url = site_url( 'wp-login.php', 'login' );
-
-            if( $disabled == '1' ) {
-                $login_url = add_query_arg( 'message', self::MESSAGE_DISABLED, $login_url );
-            }
-            if( $sqrlonly == '1' ) {
-                $login_url = add_query_arg( 'message', self::MESSAGE_SQRLONLY, $login_url );
-            }
-
+            $login_url = add_query_arg( 'message', self::MESSAGE_DISABLED, $login_url );
+            wp_redirect( $login_url );
+            exit;
+        }
+        if( $sqrlonly == '1' ) {
+            wp_clear_auth_cookie();
+            $login_url = add_query_arg( 'message', self::MESSAGE_SQRLONLY, $login_url );
             wp_redirect( $login_url );
             exit;
         }
@@ -901,17 +897,17 @@ class SQRLLogin {
             $message =  '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
         }
         if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_REMOVED ) {
-            $message =  '<div id="login_error">' . __( 'Account removed', 'sqrl' ) . '</div>';
+            $message =  '<div id="login_error">' . __( 'Identity disassociated from account', 'sqrl' ) . '</div>';
         }
         if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_SQRLONLY ) {
             $message =  '<div id="login_error">' . __( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
         }
         if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_ERROR ) {
             $message =  '<div id="login_error">' . __( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
-		}
+        }
         if ( isset( $_GET['message'] ) && $_GET['message'] == self::MESSAGE_REGISTRATION_NOT_ALLOWED ) {
             $message =  '<div id="login_error">' . __( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
-		}
+        }
 
         if (!is_ssl()) {
             $message .=  '<div id="login_error">' . __( 'SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.', 'sqrl' ) . '</div>';
@@ -976,14 +972,10 @@ class SQRLLogin {
      * 		 when an disabled account should be enabled again.
      * sqrl_session = temporary value used during login to signal a correct authentication.
      */
-    public function disAssociateUser() {
-        $user = wp_get_current_user();
-
-        delete_user_meta( $user->id, 'sqrl_idk');
-        delete_user_meta( $user->id, 'sqrl_suk');
-        delete_user_meta( $user->id, 'sqrl_vuk');
-
-        header("Location: " . admin_url('profile.php'), true);
+    public function disAssociateUser($user) {
+        delete_user_meta( $user, 'sqrl_idk');
+        delete_user_meta( $user, 'sqrl_suk');
+        delete_user_meta( $user, 'sqrl_vuk');
     }
 
     /**
@@ -1097,10 +1089,10 @@ class SQRLLogin {
         return base64_decode(str_replace(array('-', '_'), array('+', '/'), $data));
     }
 
-	function valuePair($str) {
-	    $eqPos = strpos($str, "=");
-    	return array(substr($str, 0, $eqPos), substr($str, $eqPos + 1));
-	}
+    function valuePair($str) {
+        $eqPos = strpos($str, "=");
+        return array(substr($str, 0, $eqPos), substr($str, $eqPos + 1));
+    }
 }
 
 new SQRLLogin();

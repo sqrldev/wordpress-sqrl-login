@@ -46,6 +46,8 @@ Version 1.1.1
 
 Bugfixes
 * Handle CANcel parameter correctly.
+* Remove should disassociate identity from user
+* Disable should only disable login with SQRL if not SQRLOnly is supplied.
 
 Version 1.1.0
 
