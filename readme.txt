@@ -42,6 +42,11 @@ Special thanks to:
 
 == Changelog ==
 
+Version 1.1.2
+
+Bugfixes
+* White border around QRCode.
+
 Version 1.1.1
 
 Bugfixes
