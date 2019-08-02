@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           1.1.2
+ * Version:           1.2.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -36,6 +36,7 @@ class SQRLLogin {
     const COMMAND_ENABLE = 2;
     const COMMAND_DISABLE = 3;
     const COMMAND_REMOVE = 4;
+    const COMMAND_REGISTER = 5;
 
     const SESSION_TIMEOUT = 15 * 60;
 
@@ -69,6 +70,139 @@ class SQRLLogin {
 
         add_action( 'admin_init', array($this, 'registerSettings') );
         add_action( 'admin_menu', array($this, 'registerOptionsPage') );
+
+        add_action( 'register_form', array($this, 'addRegistrationFields') );
+        add_action( 'user_register', array($this, 'registrationSave'), 10, 1 );
+
+        add_filter( 'site_url', array($this, 'keepRegistrationNut'), 10, 4 );
+
+        add_action( 'admin_post_nopriv_sqrl_registration_selection', array($this, 'registrationSelection'));
+        add_action( 'admin_post_nopriv_sqrl_anonymous_registration', array($this, 'anonymousRegistration'));
+
+    }
+
+    function anonymousRegistration() {
+        // Validate session value
+        // If the string is not Base64URL encoded, die here and don't process code below.
+        $this->onlyAllowBase64URL($_GET['nut']);
+        $nut = sanitize_text_field($_GET['nut']);
+
+        $session = get_transient($nut);
+        delete_transient($nut);
+
+        error_log("IDK " . $session["client"]["idk"]);
+        error_log("SUK " . $session["client"]["suk"]);
+        error_log("VUK " . $session["client"]["vuk"]);
+
+        $this->createUser($session["client"]);
+        $session["user"] = $this->getUserId($session["client"]["idk"]);
+        $session["cmd"] = self::COMMAND_LOGIN;
+
+        $nut = $this->generateRandomString();
+        set_transient($nut, $session, self::SESSION_TIMEOUT);
+        $loginURL = admin_url('admin-post.php');
+        $loginURL = add_query_arg( 'action', 'sqrl_login', $loginURL );
+        $loginURL = add_query_arg( 'nut', $nut, $loginURL );
+        wp_redirect( $loginURL );
+        exit();
+    }
+
+    function registrationSelection() {
+        // Validate session value
+        // If the string is not Base64URL encoded, die here and don't process code below.
+        $this->onlyAllowBase64URL($_GET['nut']);
+        $nut = sanitize_text_field($_GET['nut']);
+
+        $sqrl_registration_option_title = __('Registration selection', 'sqrl');
+        $sqrl_registration_option_header = __('Select registration option', 'sqrl');
+        $sqrl_registration_option_anonymous = __('Anonymous registration', 'sqrl');
+        $sqrl_registration_option_normal = __('Normal registration', 'sqrl');
+
+        $registerURL = site_url( 'wp-login.php' );
+        $registerURL = add_query_arg( 'action', 'register', $registerURL );
+        $registerURL = add_query_arg( 'nut', $nut, $registerURL );
+
+        $anonymousURL = admin_url('admin-post.php');
+        $anonymousURL = add_query_arg( 'action', 'sqrl_anonymous_registration', $anonymousURL );
+        $anonymousURL = add_query_arg( 'nut', $nut, $anonymousURL );
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="X-UA-Compatible" content="ie=edge">
+                <meta name='robots' content='noindex,noarchive' />
+                <meta name='referrer' content='strict-origin-when-cross-origin' />
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+                <title<?php echo $sqrl_registration_option_title ?>></title>
+                <link rel='stylesheet' id='buttons-css'  href='https://uhash.com/testsite/wp-includes/css/buttons.min.css?ver=5.2.2' type='text/css' media='all' />
+                <link rel="stylesheet" id="login-css" href="https://uhash.com/testsite/wp-admin/css/login.min.css?ver=5.2.2" type="text/css" media="all">
+                <style>
+                    .space {
+                        margin: 20px 0 0 0;
+                    }
+                </style>
+            </head>
+            <body class="login login-action-register wp-core-ui locale-en-us">
+                <div id="login">
+                    <h1><a href="https://wordpress.org/">Powered by WordPress</a></h1>
+                    <p class="message register"><?php echo $sqrl_registration_option_header ?></p>
+                    <form>
+                        <div>
+                            <a href="<?php echo $anonymousURL ?>" class="button button-large"><?php echo $sqrl_registration_option_anonymous ?></a>
+                        </div>
+                        <div class="space">
+                            <a href="<?php echo $registerURL ?>" class="button button-large"><?php echo $sqrl_registration_option_normal ?></a>
+                        </div>
+                    </form>
+                </div>
+            </body>
+        </html>
+        <?php
+    }
+
+    function keepRegistrationNut( $url, $path, $scheme, $blog_id ) {
+        if ( $scheme == 'login_post' ) {
+            if ( strpos( $url, '?action=register' ) !== false && !empty( $_GET['nut'] ) ) {
+                $url = add_query_arg( 'nut', sanitize_text_field( $_GET['nut'] ), $url );
+            }
+        }
+        return $url;
+    }
+
+    function addRegistrationFields() {
+        // Validate session value
+        // If the string is not Base64URL encoded, die here and don't process code below.
+          $this->onlyAllowBase64URL($_GET['nut']);
+        $nut = sanitize_text_field($_GET['nut']);
+        ?><input type="hidden" name="nut" value="<?php echo $nut; ?>" /><?php
+    }
+
+    function registrationSave($user) {
+        if(empty($_POST["nut"])) return;
+
+        // Validate session value
+        // If the string is not Base64URL encoded, die here and don't process code below.
+          $this->onlyAllowBase64URL($_POST['nut']);
+        $nut = sanitize_text_field($_POST['nut']);
+
+        $session = get_transient($nut);
+        delete_transient($nut);
+
+        $this->associateUser($user, $session["client"]);
+
+        $session["user"] = $user;
+        $session["cmd"] = self::COMMAND_LOGIN;
+
+        $nut = $this->generateRandomString();
+        set_transient($nut, $session, self::SESSION_TIMEOUT);
+        $loginURL = admin_url('admin-post.php');
+        $loginURL = add_query_arg( 'action', 'sqrl_login', $loginURL );
+        $loginURL = add_query_arg( 'nut', $nut, $loginURL );
+        wp_redirect( $loginURL );
+        exit();
     }
 
     function registerSettings() {
@@ -341,9 +475,9 @@ class SQRLLogin {
         // Clear cookies, a.k.a log user out
         wp_clear_auth_cookie();
         // Build login URL and then redirect
-        $login_url = site_url( 'wp-login.php', 'login' );
+        $loginURL = site_url( 'wp-login.php', 'login' );
 
-        $login_url = add_query_arg( 'message', $messageKey, $login_url );
+        $loginURL = add_query_arg( 'message', $messageKey, $loginURL );
         wp_redirect( $login_url );
         exit;
     }
@@ -366,8 +500,6 @@ class SQRLLogin {
         $session = get_transient($sessionKey);
         delete_transient($sessionKey);
 
-        error_log("Session data: " . print_r($session, true));
-
         if ($session['cmd'] === self::COMMAND_REMOVE) {
             if (!empty($_GET['existingUser'])) {
                 header("Location: " . admin_url('profile.php'), true);
@@ -381,6 +513,18 @@ class SQRLLogin {
         if ($session['err'] === self::MESSAGE_ERROR) {
             $this->logoutWithMessage(self::MESSAGE_ERROR);
         }
+
+
+        if ($session['cmd'] === self::COMMAND_REGISTER) {
+            $nut = $this->generateRandomString();
+            set_transient($nut, $session, self::SESSION_TIMEOUT);
+            $registerURL = admin_url('admin-post.php');
+            $registerURL = add_query_arg( 'action', 'sqrl_registration_selection', $registerURL );
+            $registerURL = add_query_arg( 'nut', $nut, $registerURL );
+            wp_redirect( $registerURL );
+            exit();
+        }
+
         if ($session['cmd'] === self::COMMAND_LOGIN || $session['cmd'] === self::COMMAND_ENABLE) {
             wp_set_auth_cookie( $session['user'] );
         }
@@ -641,7 +785,8 @@ class SQRLLogin {
                     if (!get_option( 'users_can_register' )) {
                         $transientSession["err"] = self::MESSAGE_REGISTRATION_NOT_ALLOWED;
                     } else {
-                        $this->createUser($client);
+                        $transientSession["client"] = $client;
+                        $transientSession["cmd"] = self::COMMAND_REGISTER;
                     }
                 }
             }
