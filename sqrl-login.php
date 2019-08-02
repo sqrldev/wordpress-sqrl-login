@@ -259,14 +259,14 @@ class SQRLLogin {
             set_transient($nut, array(
                 'user'     => $user->id,
                 'ip'  => $this->getClientIP(),
-                'redir' => sanitize_text_field($_GET["redirect_to"]),
+                'redir' => isset( $_GET['redirect_to'] ) ? sanitize_text_field( $_GET['redirect_to'] ) : '',
                 'session'     => $session
             ), self::SESSION_TIMEOUT);
         } else {
             set_transient($nut, array(
                 'user'     => false,
                 'ip'  => $this->getClientIP(),
-                'redir' => sanitize_text_field($_GET["redirect_to"]),
+                'redir' => isset( $_GET['redirect_to'] ) ? sanitize_text_field( $_GET['redirect_to'] ) : '',
                 'session'     => $session
             ), self::SESSION_TIMEOUT);
         }
