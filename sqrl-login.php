@@ -90,10 +90,6 @@ class SQRLLogin {
         $session = get_transient($nut);
         delete_transient($nut);
 
-        error_log("IDK " . $session["client"]["idk"]);
-        error_log("SUK " . $session["client"]["suk"]);
-        error_log("VUK " . $session["client"]["vuk"]);
-
         $this->createUser($session["client"]);
         $session["user"] = $this->getUserId($session["client"]["idk"]);
         $session["cmd"] = self::COMMAND_LOGIN;
@@ -136,7 +132,7 @@ class SQRLLogin {
                 <meta name='referrer' content='strict-origin-when-cross-origin' />
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-                <title<?php echo $sqrl_registration_option_title ?>></title>
+                <title><?php echo $sqrl_registration_option_title ?>></title>
                 <link rel='stylesheet' id='buttons-css'  href='https://uhash.com/testsite/wp-includes/css/buttons.min.css?ver=5.2.2' type='text/css' media='all' />
                 <link rel="stylesheet" id="login-css" href="https://uhash.com/testsite/wp-admin/css/login.min.css?ver=5.2.2" type="text/css" media="all">
                 <style>
@@ -579,6 +575,13 @@ class SQRLLogin {
      * register new users, disable the account, enable the account and remove the account.
      */
     public function apiCallback() {
+
+        // Fix to handle google bot trying to connect to the callback URL.
+        // Looking for required post parameters and exit if missing.
+        if (empty($_POST["client"]) || empty($_POST["server"]) || empty($_POST["ids"])) {
+            error_log("Missing required parameter");
+            $this->exitWithErrorCode(self::CLIENT_FAILURE);
+        }
 
         // Validate Client data
         // If the string is not Base64URL encoded, die here and don't process code below.
