@@ -47,6 +47,10 @@ Version 1.2.0
 Features
 * Added registration page.
 
+Bugfixes
+* Remove notice due to redirect_to (Thanks to @sanzeeb3)
+* Handle issue "Google Crawl causes Exception" (Issue #36)
+
 Version 1.1.2
 
 Bugfixes
