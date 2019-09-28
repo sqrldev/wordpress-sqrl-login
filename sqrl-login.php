@@ -265,14 +265,14 @@ class SQRLLogin {
         ?>
         <h3><?php echo $sqrl_settings_title ?></h3>
         <?php
-        if(get_user_meta($user->id, 'sqrl_idk', true)) {
+        if(get_user_meta($user->ID, 'sqrl_idk', true)) {
             ?>
             <table class="form-table">
                 <tr>
                     <th>
                     </th>
                     <td>
-                        <?php if (get_user_meta($user->id, 'sqrl_hardlock', true)) { ?>
+                        <?php if (get_user_meta($user->ID, 'sqrl_hardlock', true)) { ?>
                             <div class="sqrl-form" style="border-left: 3px solid #dc3232;">
                                 <div class="sqrl-login-row"><?php echo $hardlock_disclaimer ?></div>
                             </div>
@@ -387,7 +387,7 @@ class SQRLLogin {
 
         if($user) {
             set_transient($nut, array(
-                'user'     => $user->id,
+                'user'     => $user->ID,
                 'ip'  => $this->getClientIP(),
                 'redir' => isset( $_GET['redirect_to'] ) ? sanitize_text_field( $_GET['redirect_to'] ) : '',
                 'session'     => $session
