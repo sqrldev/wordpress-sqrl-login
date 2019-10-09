@@ -38,4 +38,4 @@ This second screenshot shows the user's profile when logged in with username and
 
 ![Profile screen with association](assets/screenshot-3.png)
 
-This third screenshot shows the user's profile after having enabled SQRL for log in.
+This third screenshot shows the user's profile after having enabled SQRL for logging in.
