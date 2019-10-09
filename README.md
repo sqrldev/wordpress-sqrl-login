@@ -32,7 +32,7 @@ Registering happens automatically, but only when the WP site is allowing registr
 
 ![Profile screen without association](assets/screenshot-2.png)
 
-This second screenshot shows the user's profile when logged in with username and password, before having enable SQRL for log in.
+This second screenshot shows the user's profile when logged in with username and password, before having enabled SQRL for log in.
 
 ---
 
