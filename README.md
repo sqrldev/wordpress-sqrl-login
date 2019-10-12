@@ -18,6 +18,24 @@ Special thanks to:
 @jaredatch (Jared Atchison) for writing a plugin for disabling users that I took inspiration from. (https://github.com/jaredatch/Disable-Users)
 
 
+
+## Screenshots
+
+Note: The "Will look for QR Login in 3" is a countdown for checking login. Every 5...4...3...2...1 seconds this plugin checks if a QR login has happened. This is because there is no live direct connection between the plugin, the server, and the device the user uses to log in.
+
 ![Login screen](assets/screenshot-1.png)
+
+The first screenshot shows the login screen. This plugin adds the SQRL login functionality on the login screen only.
+Registering happens automatically, but only when the WP site is allowing registrations. This is necessary to ensure the smooth first time visitor experience that SQRL users are expecting.
+
+---
+
 ![Profile screen without association](assets/screenshot-2.png)
+
+This second screenshot shows the user's profile when logged in with username and password, as it looks before having enabled SQRL for logging in.
+
+---
+
 ![Profile screen with association](assets/screenshot-3.png)
+
+This third screenshot shows the user's profile after having enabled SQRL for logging in.
