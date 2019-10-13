@@ -1,19 +1,24 @@
 
 <phpunit
-  bootstrap="tests/bootstrap.php"
-  backupGlobals="false"
-  colors="true"
-  convertErrorsToExceptions="true"
-  convertNoticesToExceptions="true"
-  convertWarningsToExceptions="true"
-  >
-  <php>
-    <!-- Enter the name of your main plugin file here -->
-    <env name="PLUGIN_FILE" value="sqrl-login.php"/>
-  </php>
-  <testsuites>
-    <testsuite>
-      <directory prefix="test-" suffix=".php">./tests/</directory>
-    </testsuite>
-  </testsuites>
+    bootstrap="tests/bootstrap.php"
+    backupGlobals="false"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    >
+    <php>
+        <!-- Enter the name of your main plugin file here -->
+        <env name="PLUGIN_FILE" value="sqrl-login.php"/>
+    </php>
+    <testsuites>
+        <testsuite>
+            <directory prefix="test-" suffix=".php">./tests/</directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+    <log type="coverage-html" target="./mainreport" charset="UTF-8"
+        yui="true" highlight="true"
+        lowUpperBound="50" highLowerBound="80" />
+    </logging>
 </phpunit>
