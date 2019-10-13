@@ -7,8 +7,8 @@ notifications:
   on_success: never
   on_failure: change
 
-addons:
-  mariadb: '10.0'
+services:
+  - mysql
 
 php:
   - nightly
