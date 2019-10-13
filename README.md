@@ -1,5 +1,6 @@
 # WordPress SQRL Login Plugin
 
+[![Build Status](https://travis-ci.org/kalaspuffar/wordpress-sqrl-login.svg?branch=master)](https://travis-ci.org/kalaspuffar/wordpress-sqrl-login)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3269/badge)](https://bestpractices.coreinfrastructure.org/projects/3269)
 
 SQRL can be used to log in to a site in a secure manner without giving away any personal information. This plugin enables that functionallity.
