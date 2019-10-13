@@ -1,0 +1,19 @@
+
+<phpunit
+  bootstrap="tests/bootstrap.php"
+  backupGlobals="false"
+  colors="true"
+  convertErrorsToExceptions="true"
+  convertNoticesToExceptions="true"
+  convertWarningsToExceptions="true"
+  >
+  <php>
+    <!-- Enter the name of your main plugin file here -->
+    <env name="PLUGIN_FILE" value="sqrl-login.php"/>
+  </php>
+  <testsuites>
+    <testsuite>
+      <directory prefix="test-" suffix=".php">./tests/</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
