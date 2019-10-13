@@ -22,10 +22,14 @@ matrix:
   allow_failures:
     - php: nightly
 
+install:
+  - wget -O ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit https://phar.phpunit.de/phpunit-7.phar
+  - chmod 755 ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit
+
 before_script:
   - git clone https://github.com/Koodimonni/wordpress-test-template wp-tests
   - bash wp-tests/bin/install-wp-tests.sh test root '' localhost $WP_VERSION
 
 script:
-  - phpcs --standard=WordPress ./**/*.php
+  - phpcs --standard=WordPress ./sqrl-login.php
   - phpunit
