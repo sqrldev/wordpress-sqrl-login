@@ -15,6 +15,10 @@ Then you open an issue under [issues](https://github.com/kalaspuffar/wordpress-s
 
 If the bug is none crucial and could be solved using the typical workflow, then report the issue in the same way as we usually file bugs. If the bug is sensitive, then email the project members, and we will address it as soon as possible.
 
+### Testing
+
+All new functions should include a valid unit test to ensure code quality going forward.
+
 ### Code style
 
 We are trying to keep a consistent coding convention to help readability and make it easy to submit code.
