@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           1.2.0
+ * Version:           1.2.1
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -265,14 +265,14 @@ class SQRLLogin {
         ?>
         <h3><?php echo $sqrl_settings_title ?></h3>
         <?php
-        if(get_user_meta($user->ID, 'sqrl_idk', true)) {
+        if(get_user_meta($user->id, 'sqrl_idk', true)) {
             ?>
             <table class="form-table">
                 <tr>
                     <th>
                     </th>
                     <td>
-                        <?php if (get_user_meta($user->ID, 'sqrl_hardlock', true)) { ?>
+                        <?php if (get_user_meta($user->id, 'sqrl_hardlock', true)) { ?>
                             <div class="sqrl-form" style="border-left: 3px solid #dc3232;">
                                 <div class="sqrl-login-row"><?php echo $hardlock_disclaimer ?></div>
                             </div>
@@ -387,17 +387,17 @@ class SQRLLogin {
 
         if($user) {
             set_transient($nut, array(
-                'user'     => $user->ID,
-                'ip'  => $this->getClientIP(),
-                'redir' => isset( $_GET['redirect_to'] ) ? sanitize_text_field( $_GET['redirect_to'] ) : '',
-                'session'     => $session
+                'user'      => $user->id,
+                'ip'        => $this->getClientIP(),
+                'redir'     => isset( $_GET['redirect_to'] ) ? sanitize_text_field( $_GET['redirect_to'] ) : '',
+                'session'   => $session
             ), self::SESSION_TIMEOUT);
         } else {
             set_transient($nut, array(
-                'user'     => false,
-                'ip'  => $this->getClientIP(),
-                'redir' => isset( $_GET['redirect_to'] ) ? sanitize_text_field( $_GET['redirect_to'] ) : '',
-                'session'     => $session
+                'user'      => false,
+                'ip'        => $this->getClientIP(),
+                'redir'     => isset( $_GET['redirect_to'] ) ? sanitize_text_field( $_GET['redirect_to'] ) : '',
+                'session'   => $session
             ), self::SESSION_TIMEOUT);
         }
 
@@ -597,11 +597,11 @@ class SQRLLogin {
 
         // Validate Previous Identity Signature
         // If the string is not Base64URL encoded, die here and don't process code below.
-        $this->onlyAllowBase64URL($_POST['pids']);
+        if(isset($_POST['pids'])) $this->onlyAllowBase64URL($_POST['pids']);
 
         // Validate Unlock Request Signature
         // If the string is not Base64URL encoded, die here and don't process code below.
-        $this->onlyAllowBase64URL($_POST['urs']);
+        if(isset($_POST['urs'])) $this->onlyAllowBase64URL($_POST['urs']);
 
         /**
          * Reset return value used as the tif (Transaction Information Flags)
@@ -705,7 +705,7 @@ class SQRLLogin {
             $this->exitWithErrorCode(self::TRANSIENT_ERROR, $clientProvidedSession);
         }
 
-        if (!$options["noiptest"]) {
+        if (!isset($options["noiptest"])) {
             if (!empty($transientSession["ip"]) && $transientSession["ip"] == $this->getClientIP()) {
                 $retVal += self::IP_MATCHED;
             }
@@ -743,7 +743,7 @@ class SQRLLogin {
                 }
             }
 
-            if($this->accountPresent($client['pidk'])) {
+            if(isset($client['pidk']) && $this->accountPresent($client['pidk'])) {
                 $retVal += self::PREVIOUS_ID_MATCH;
             }
             if ($this->accountDisabled($client)) {
@@ -983,8 +983,11 @@ class SQRLLogin {
     private function updateOptions($client, $options) {
         $user = $this->getUserId($client['idk']);
 
-        update_user_meta( $user, 'sqrl_sqrlonly', $options['sqrlonly']);
-        update_user_meta( $user, 'sqrl_hardlock', $options['hardlock']);
+        $sqrlonly = isset($options['sqrlonly']) ? 1 : 0;
+        $hardlock = isset($options['hardlock']) ? 1 : 0;
+
+        update_user_meta( $user, 'sqrl_sqrlonly', $sqrlonly);
+        update_user_meta( $user, 'sqrl_hardlock', $hardlock);
     }
 
     /**
@@ -995,7 +998,7 @@ class SQRLLogin {
          * Fetch user to check.
          */
         $user = $this->getUserId($client['idk']);
-        if (!$user) {
+        if (!$user && isset($client['pidk'])) {
             $user = $this->getUserId($client['pidk']);
         }
         if(!$user) {
@@ -1142,6 +1145,10 @@ class SQRLLogin {
             'fields'       => 'id',
         ));
 
+        if(!isset($wp_users[0])) {
+            return false;
+        }
+
         return $wp_users[0];
     }
 
@@ -1161,6 +1168,10 @@ class SQRLLogin {
             'fields'       => 'id',
         ));
 
+        if(!isset($wp_users[0])) {
+            return false;
+        }
+
         return get_user_meta($wp_users[0], "sqrl_suk", true);
     }
 
@@ -1178,6 +1189,10 @@ class SQRLLogin {
             'count_total'  => false,
             'fields'       => 'id',
         ));
+
+        if(!isset($wp_users[0])) {
+            return false;
+        }
 
         return get_user_meta($wp_users[0], "sqrl_vuk", true);
     }
