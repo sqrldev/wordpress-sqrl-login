@@ -1,5 +1,7 @@
 # WordPress SQRL Login Plugin
 
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3269/badge)](https://bestpractices.coreinfrastructure.org/projects/3269)
+
 SQRL can be used to log in to a site in a secure manner without giving away any personal information. This plugin enables that functionallity.
 
 Instead of using a username, email and a password, SQRL uses an app to login to SQRL-aware websites.
