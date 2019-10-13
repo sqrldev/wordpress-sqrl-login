@@ -16,7 +16,12 @@
             <directory prefix="test-" suffix=".php">./tests/</directory>
         </testsuite>
     </testsuites>
+    <filter>
+        <whitelist>
+            <file>sqrl-login.php</file>
+        </whitelist>
+    </filter>
     <logging>
-    <log type="coverage-html" target="./mainreport" lowUpperBound="50" highLowerBound="80" />
+        <log type="coverage-html" target="./mainreport" lowUpperBound="50" highLowerBound="80" />
     </logging>
 </phpunit>
