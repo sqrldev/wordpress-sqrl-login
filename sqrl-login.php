@@ -13,32 +13,41 @@
 
 class SQRLLogin {
 
-	const CURRENT_ID_MATCH = 1;
-	const PREVIOUS_ID_MATCH = 2;
-	const IP_MATCHED = 4;
-	const ACCOUNT_DISABLED = 8;
-	const FUNCTION_NOT_SUPPORTED = 16;
-	const TRANSIENT_ERROR = 32;
-	const COMMAND_FAILED = 64;
-	const CLIENT_FAILURE = 128;
-	const BAD_ID_ASSOCIATION = 256;
+	/**
+	 * SQRL state values
+	 */
+	const CURRENT_ID_MATCH			= 1;
+	const PREVIOUS_ID_MATCH			= 2;
+	const IP_MATCHED				= 4;
+	const ACCOUNT_DISABLED			= 8;
+	const FUNCTION_NOT_SUPPORTED 	= 16;
+	const TRANSIENT_ERROR 			= 32;
+	const COMMAND_FAILED 			= 64;
+	const CLIENT_FAILURE 			= 128;
+	const BAD_ID_ASSOCIATION 		= 256;
 
 	/**
 	 * Change messages
 	 */
-	const MESSAGE_DISABLED = 1;
-	const MESSAGE_REMOVED = 2;
-	const MESSAGE_SQRLONLY = 3;
-	const MESSAGE_ERROR = 4;
-	const MESSAGE_REGISTRATION_NOT_ALLOWED = 5;
+	const MESSAGE_DISABLED 					= 1;
+	const MESSAGE_REMOVED 					= 2;
+	const MESSAGE_SQRLONLY 					= 3;
+	const MESSAGE_ERROR 					= 4;
+	const MESSAGE_REGISTRATION_NOT_ALLOWED 	= 5;
 
-	const COMMAND_LOGIN = 1;
-	const COMMAND_ENABLE = 2;
-	const COMMAND_DISABLE = 3;
-	const COMMAND_REMOVE = 4;
-	const COMMAND_REGISTER = 5;
+	/**
+	 * Command flags
+	 */
+	const COMMAND_LOGIN 	= 1;
+	const COMMAND_ENABLE 	= 2;
+	const COMMAND_DISABLE 	= 3;
+	const COMMAND_REMOVE 	= 4;
+	const COMMAND_REGISTER 	= 5;
 
-	const SESSION_TIMEOUT = 15 * 60;
+	/**
+	 * Timeout constant
+	 */
+	const SESSION_TIMEOUT 	= 15 * 60;
 
 	/**
 	 * SQRLLogin constructor.
@@ -47,37 +56,37 @@ class SQRLLogin {
 	 * the get / post request we need to handle.
 	 */
 	public function __construct() {
-		add_action('login_form', array($this, 'addToLoginForm'));
+		add_action('login_form', array( $this, 'addToLoginForm' ) );
 
-		add_action( 'admin_post_sqrl_login', array($this, 'loginCallback'));
-		add_action( 'admin_post_nopriv_sqrl_login', array($this, 'loginCallback'));
-		add_action( 'admin_post_sqrl_logout', array($this, 'logoutCallback'));
-		add_action( 'admin_post_nopriv_sqrl_logout', array($this, 'logoutCallback'));
-		add_action( 'admin_post_sqrl_auth', array($this, 'apiCallback'));
-		add_action( 'admin_post_nopriv_sqrl_auth', array($this, 'apiCallback'));
+		add_action( 'admin_post_sqrl_login', array( $this, 'loginCallback' ) );
+		add_action( 'admin_post_nopriv_sqrl_login', array( $this, 'loginCallback' ) );
+		add_action( 'admin_post_sqrl_logout', array( $this, 'logoutCallback' ) );
+		add_action( 'admin_post_nopriv_sqrl_logout', array( $this, 'logoutCallback' ) );
+		add_action( 'admin_post_sqrl_auth', array( $this, 'apiCallback' ) );
+		add_action( 'admin_post_nopriv_sqrl_auth', array( $this, 'apiCallback' ) );
 
-		add_action( 'admin_post_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));
-		add_action( 'admin_post_nopriv_sqrl_check_login', array($this, 'checkIfLoggedInAjax'));
+		add_action( 'admin_post_sqrl_check_login', array( $this, 'checkIfLoggedInAjax' ) );
+		add_action( 'admin_post_nopriv_sqrl_check_login', array( $this, 'checkIfLoggedInAjax' ) );
 
-		add_action( 'edit_user_profile', array($this, 'associateSQRL') );
-		add_action( 'show_user_profile', array($this, 'associateSQRL') );
+		add_action( 'edit_user_profile', array( $this, 'associateSQRL' ) );
+		add_action( 'show_user_profile', array( $this, 'associateSQRL' ) );
 
-		add_action( 'login_enqueue_scripts', array($this, 'enqueueScripts') );
-		add_action( 'admin_enqueue_scripts', array($this, 'enqueueScripts') );
+		add_action( 'login_enqueue_scripts', array( $this, 'enqueueScripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
 
-		add_action( 'wp_login', array($this, 'userLogin'), 10, 2 );
-		add_filter( 'login_message', array($this, 'userLoginMessage') );
+		add_action( 'wp_login', array( $this, 'userLogin' ), 10, 2 );
+		add_filter( 'login_message', array( $this, 'userLoginMessage' ) );
 
-		add_action( 'admin_init', array($this, 'registerSettings') );
-		add_action( 'admin_menu', array($this, 'registerOptionsPage') );
+		add_action( 'admin_init', array( $this, 'registerSettings' ) );
+		add_action( 'admin_menu', array( $this, 'registerOptionsPage' ) );
 
-		add_action( 'register_form', array($this, 'addRegistrationFields') );
-		add_action( 'user_register', array($this, 'registrationSave'), 10, 1 );
+		add_action( 'register_form', array( $this, 'addRegistrationFields' ) );
+		add_action( 'user_register', array( $this, 'registrationSave' ), 10, 1 );
 
-		add_filter( 'site_url', array($this, 'keepRegistrationNut'), 10, 4 );
+		add_filter( 'site_url', array( $this, 'keepRegistrationNut' ), 10, 4 );
 
-		add_action( 'admin_post_nopriv_sqrl_registration_selection', array($this, 'registrationSelection'));
-		add_action( 'admin_post_nopriv_sqrl_anonymous_registration', array($this, 'anonymousRegistration'));
+		add_action( 'admin_post_nopriv_sqrl_registration_selection', array( $this, 'registrationSelection' ) );
+		add_action( 'admin_post_nopriv_sqrl_anonymous_registration', array( $this, 'anonymousRegistration' ) );
 
 	}
 

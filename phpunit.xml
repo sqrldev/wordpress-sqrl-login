@@ -12,13 +12,11 @@
         <env name="PLUGIN_FILE" value="sqrl-login.php"/>
     </php>
     <testsuites>
-        <testsuite>
+        <testsuite name="default">
             <directory prefix="test-" suffix=".php">./tests/</directory>
         </testsuite>
     </testsuites>
     <logging>
-    <log type="coverage-html" target="./mainreport" charset="UTF-8"
-        yui="true" highlight="true"
-        lowUpperBound="50" highLowerBound="80" />
+    <log type="coverage-html" target="./mainreport" lowUpperBound="50" highLowerBound="80" />
     </logging>
 </phpunit>
