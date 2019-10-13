@@ -31,5 +31,5 @@ before_script:
   - bash wp-tests/bin/install-wp-tests.sh test root '' localhost $WP_VERSION
 
 script:
-  - phpcs --standard=WordPress ./sqrl-login.php
+  - phpcs --standard=rulesset.xml ./sqrl-login.php
   - phpunit
