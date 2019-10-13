@@ -26,11 +26,11 @@ class SQRLLogin {
     /**
      * Change messages
      */
-    const MESSAGE_DISABLED = '1';
-    const MESSAGE_REMOVED = '2';
-    const MESSAGE_SQRLONLY = '3';
-    const MESSAGE_ERROR = '4';
-    const MESSAGE_REGISTRATION_NOT_ALLOWED = '5';
+    const MESSAGE_DISABLED = 1;
+    const MESSAGE_REMOVED = 2;
+    const MESSAGE_SQRLONLY = 3;
+    const MESSAGE_ERROR = 4;
+    const MESSAGE_REGISTRATION_NOT_ALLOWED = 5;
 
     const COMMAND_LOGIN = 1;
     const COMMAND_ENABLE = 2;
@@ -114,7 +114,7 @@ class SQRLLogin {
         $sqrl_registration_option_anonymous = __('Anonymous registration', 'sqrl');
         $sqrl_registration_option_normal = __('Normal registration', 'sqrl');
 
-        $registerURL = site_url( 'wp-login.php' );
+        $registerURL = site_url( 'wp-login.php', 'https' );
         $registerURL = add_query_arg( 'action', 'register', $registerURL );
         $registerURL = add_query_arg( 'nut', $nut, $registerURL );
 
@@ -471,10 +471,11 @@ class SQRLLogin {
         // Clear cookies, a.k.a log user out
         wp_clear_auth_cookie();
         // Build login URL and then redirect
-        $loginURL = site_url( 'wp-login.php', 'login' );
 
+        $loginURL = site_url( 'wp-login.php', 'https' );
         $loginURL = add_query_arg( 'message', $messageKey, $loginURL );
-        wp_redirect( $login_url );
+
+        wp_redirect( $loginURL );
         exit;
     }
 
@@ -509,7 +510,6 @@ class SQRLLogin {
         if ($session['err'] === self::MESSAGE_ERROR) {
             $this->logoutWithMessage(self::MESSAGE_ERROR);
         }
-
 
         if ($session['cmd'] === self::COMMAND_REGISTER) {
             $nut = $this->generateRandomString();
