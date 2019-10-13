@@ -22,6 +22,6 @@
         </whitelist>
     </filter>
     <logging>
-        <log type="coverage-html" target="./mainreport" lowUpperBound="50" highLowerBound="80" />
+        <log type="coverage-clover" target="./clover.xml"/>
     </logging>
 </phpunit>
