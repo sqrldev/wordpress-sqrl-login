@@ -4,7 +4,7 @@ Tags: sqrl, login
 Donate link: http://ko-fi.com/danielpersson
 Requires at least: 5.2.2
 Tested up to: 5.2.2
-Requires PHP: 7.0
+Requires PHP: 7.2
 Stable tag: trunk
 License: MIT
 License URI: https://raw.githubusercontent.com/kalaspuffar/wordpress-sqrl-login/master/LICENSE
