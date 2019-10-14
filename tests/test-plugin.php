@@ -18,19 +18,24 @@ class PluginTest extends WP_UnitTestCase {
     $message = $sqrlLogin->user_login_message(); 
     $this->assertEqual( "", $message );
 
-    $message = $sqrlLogin->user_login_message(SQRLLogin::MESSAGE_DISABLED);
+    $_GET['message'] = SQRLLogin::MESSAGE_DISABLED;
+    $message = $sqrlLogin->user_login_message();
     $this->assertEqual( "Account disabled", $message );
 
-    $message = $sqrlLogin->user_login_message(SQRLLogin::MESSAGE_REMOVED);
+    $_GET['message'] = SQRLLogin::MESSAGE_REMOVED;
+    $message = $sqrlLogin->user_login_message();
     $this->assertEqual( "Identity disassociated from account", $message );
 
-    $message = $sqrlLogin->user_login_message(SQRLLogin::MESSAGE_SQRLONLY);
+    $_GET['message'] = SQRLLogin::MESSAGE_SQRLONLY;
+    $message = $sqrlLogin->user_login_message();
     $this->assertEqual( "The only allowed login method is SQRL for this account", $message );
 
-    $message = $sqrlLogin->user_login_message(SQRLLogin::MESSAGE_ERROR);
+    $_GET['message'] = SQRLLogin::MESSAGE_ERROR;
+    $message = $sqrlLogin->user_login_message();
     $this->assertEqual( "An error occured with the last SQRL command, please try again.", $message );
 
-    $message = $sqrlLogin->user_login_message(SQRLLogin::MESSAGE_REGISTRATION_NOT_ALLOWED);
+    $_GET['message'] = SQRLLogin::MESSAGE_REGISTRATION_NOT_ALLOWED;
+    $message = $sqrlLogin->user_login_message();
     $this->assertEqual( "The site is not allowing new registrations and your SQRL identity is not associated with any account.", $message );
   }
 }

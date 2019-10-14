@@ -1198,10 +1198,8 @@ class SQRLLogin {
 	 * This will show a message that the user account is disabled.
 	 *
 	 * Code inspired by https://github.com/jaredatch/Disable-Users
-	 *
-	 * @param int $message      Number of the message to display to the end user.
 	 */
-	public function user_login_message( $message ) {
+	public function user_login_message() {
 		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === $_GET['message'] ) {
 			$message = '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
 		}
