@@ -702,8 +702,11 @@ class SQRLLogin {
 		error_log( 'Failed response: ' . print_r( $response, true ) );
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		header( 'Content-Type: application/x-www-form-urlencoded' );
-		header( 'Content-Length: ' . strlen( $content ) );
+		if (!headers_sent()) {
+			header( 'Content-Type: application/x-www-form-urlencoded' );
+			header( 'Content-Length: ' . strlen( $content ) );
+		}
+
 		echo $content;
 		exit();
 	}
