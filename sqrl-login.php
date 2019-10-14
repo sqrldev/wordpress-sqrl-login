@@ -1198,23 +1198,24 @@ class SQRLLogin {
 	 * This will show a message that the user account is disabled.
 	 *
 	 * Code inspired by https://github.com/jaredatch/Disable-Users
+	 *
+	 * @param string $message  Original message. 
 	 */
-	public function user_login_message() {
-		$message = '';
+	public function user_login_message($message = '') {
 		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === $_GET['message'] ) {
-			$message = '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_REMOVED === $_GET['message'] ) {
-			$message = '<div id="login_error">' . __( 'Identity disassociated from account', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . __( 'Identity disassociated from account', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_SQRLONLY === $_GET['message'] ) {
-			$message = '<div id="login_error">' . __( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . __( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_ERROR === $_GET['message'] ) {
-			$message = '<div id="login_error">' . __( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . __( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_REGISTRATION_NOT_ALLOWED === $_GET['message'] ) {
-			$message = '<div id="login_error">' . __( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . __( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
 		}
 
 		if ( ! is_ssl() ) {
