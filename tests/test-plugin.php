@@ -38,5 +38,19 @@ class PluginTest extends WP_UnitTestCase {
     $message = $sqrlLogin->user_login_message("");
     $this->assertEquals( '<div id="login_error">The site is not allowing new registrations and your SQRL identity is not associated with any account.</div>', $message );
   }
+
+  function test_exit_with_error_code() {
+    $sqrlLogin = new SQRLLogin();
+
+    ob_start();
+    $sqrlLogin->exit_with_error_code( 0 );
+    $output = ob_get_flush();
+
+    echo $output;
+
+    $this->assertTrue(strstr($output, "tif=0"));
+
+    ob_end_clean();
+  }
 }
 
