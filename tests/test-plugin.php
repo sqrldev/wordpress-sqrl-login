@@ -12,7 +12,7 @@ class PluginTest extends WP_UnitTestCase {
 
     $_SERVER['HTTPS'] = 0;
     $message = $sqrlLogin->user_login_message();
-    $this->assertEquals( "SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.", $message );
+    $this->assertEquals( '<div id="login_error">SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.</div>', $message );
 
     $_SERVER['HTTPS'] = 1;
     $message = $sqrlLogin->user_login_message(); 
@@ -20,23 +20,23 @@ class PluginTest extends WP_UnitTestCase {
 
     $_GET['message'] = SQRLLogin::MESSAGE_DISABLED;
     $message = $sqrlLogin->user_login_message();
-    $this->assertEquals( "Account disabled", $message );
+    $this->assertEquals( '<div id="login_error">Account disabled</div>', $message );
 
     $_GET['message'] = SQRLLogin::MESSAGE_REMOVED;
     $message = $sqrlLogin->user_login_message();
-    $this->assertEquals( "Identity disassociated from account", $message );
+    $this->assertEquals( '<div id="login_error">Identity disassociated from account</div>', $message );
 
     $_GET['message'] = SQRLLogin::MESSAGE_SQRLONLY;
     $message = $sqrlLogin->user_login_message();
-    $this->assertEquals( "The only allowed login method is SQRL for this account", $message );
+    $this->assertEquals( '<div id="login_error">The only allowed login method is SQRL for this account</div>', $message );
 
     $_GET['message'] = SQRLLogin::MESSAGE_ERROR;
     $message = $sqrlLogin->user_login_message();
-    $this->assertEquals( "An error occured with the last SQRL command, please try again.", $message );
+    $this->assertEquals( '<div id="login_error">An error occured with the last SQRL command, please try again.</div>', $message );
 
     $_GET['message'] = SQRLLogin::MESSAGE_REGISTRATION_NOT_ALLOWED;
     $message = $sqrlLogin->user_login_message();
-    $this->assertEquals( "The site is not allowing new registrations and your SQRL identity is not associated with any account.", $message );
+    $this->assertEquals( '<div id="login_error">The site is not allowing new registrations and your SQRL identity is not associated with any account.</div>', $message );
   }
 }
 
