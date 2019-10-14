@@ -393,12 +393,10 @@ class SQRLLogin {
 	 * connection has been done.
 	 */
 	public function check_if_logged_in_ajax() {
-		if ( ! headers_sent() ) {
-			header( 'Access-Control-Allow-Origin: ' . get_site_url() );
-			header( 'Access-Control-Allow-Credentials: true' );
-			header( 'Access-Control-Max-Age: 1' ); // cache for 1 day.
-			header( 'Access-Control-Allow-Methods: GET, OPTIONS' );
-		}
+		header( 'Access-Control-Allow-Origin: ' . get_site_url() );
+		header( 'Access-Control-Allow-Credentials: true' );
+		header( 'Access-Control-Max-Age: 1' ); // cache for 1 day.
+		header( 'Access-Control-Allow-Methods: GET, OPTIONS' );
 
 		if ( ! isset( $_GET['session'] ) ) {
 			echo 'false';
@@ -704,10 +702,8 @@ class SQRLLogin {
 		error_log( 'Failed response: ' . print_r( $response, true ) );
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		if ( ! headers_sent() ) {
-			header( 'Content-Type: application/x-www-form-urlencoded' );
-			header( 'Content-Length: ' . strlen( $content ) );
-		}
+		header( 'Content-Type: application/x-www-form-urlencoded' );
+		header( 'Content-Length: ' . strlen( $content ) );
 
 		echo $content;
 		exit();
@@ -1122,10 +1118,8 @@ class SQRLLogin {
 		 * Display the result as an base64url encoded string.
 		 */
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		if ( ! headers_sent() ) {
-			header( 'Content-Type: application/x-www-form-urlencoded' );
-			header( 'Content-Length: ' . strlen( $content ) );
-		}
+		header( 'Content-Type: application/x-www-form-urlencoded' );
+		header( 'Content-Length: ' . strlen( $content ) );
 		echo $content;
 	}
 
