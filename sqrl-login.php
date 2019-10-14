@@ -394,7 +394,7 @@ class SQRLLogin {
 	 */
 	public function check_if_logged_in_ajax() {
 		if ( ! headers_sent() ) {
-			header( 'Access-Control-Allow-Origin: ' . get_site_url() );			
+			header( 'Access-Control-Allow-Origin: ' . get_site_url() );
 			header( 'Access-Control-Allow-Credentials: true' );
 			header( 'Access-Control-Max-Age: 1' ); // cache for 1 day.
 			header( 'Access-Control-Allow-Methods: GET, OPTIONS' );

@@ -44,7 +44,8 @@ class PluginTest extends WP_UnitTestCase {
 
     ob_start();
     $sqrlLogin->exit_with_error_code( 0 );
-    $output = ob_get_flush();
+    ob_end_flush();
+    $output = ob_get_contents();
     ob_end_clean();
 
     echo $output;
