@@ -1200,6 +1200,7 @@ class SQRLLogin {
 	 * Code inspired by https://github.com/jaredatch/Disable-Users
 	 */
 	public function user_login_message() {
+		$message = '';
 		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === $_GET['message'] ) {
 			$message = '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
 		}
