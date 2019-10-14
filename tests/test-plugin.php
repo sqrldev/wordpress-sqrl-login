@@ -44,8 +44,7 @@ class PluginTest extends WP_UnitTestCase {
 
     ob_start();
     $sqrlLogin->exit_with_error_code( 0 );
-    $strOutput = ob_get_contents();
-    ob_end_clean();
+    $strOutput = ob_get_clean();
 
     var_dump($strOutput);
     $containsAnswer = strstr($strOutput, "tif=0") !== false;
