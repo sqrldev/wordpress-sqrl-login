@@ -136,7 +136,7 @@ class SQRLLogin {
 		$login_url = add_query_arg( 'action', 'sqrl_login', $login_url );
 		$login_url = add_query_arg( 'nut', $nut, $login_url );
 		wp_safe_redirect( $login_url );
-		exit();
+		terminate();
 	}
 
 	/**
@@ -271,7 +271,7 @@ class SQRLLogin {
 		$login_url = add_query_arg( 'action', 'sqrl_login', $login_url );
 		$login_url = add_query_arg( 'nut', $nut, $login_url );
 		wp_safe_redirect( $login_url );
-		exit();
+		terminate();
 	}
 
 	/**
@@ -400,7 +400,7 @@ class SQRLLogin {
 
 		if ( ! isset( $_GET['session'] ) ) {
 			echo 'false';
-			exit();
+			terminate();
 		}
 
 		echo get_transient( sanitize_text_field( wp_unslash( $_GET['session'] ) ) ) === false ? 'false' : 'true';
@@ -652,7 +652,7 @@ class SQRLLogin {
 			$register_url = add_query_arg( 'action', 'sqrl_registration_selection', $register_url );
 			$register_url = add_query_arg( 'nut', $nut, $register_url );
 			wp_safe_redirect( $register_url );
-			exit();
+			terminate();
 		}
 
 		if ( self::COMMAND_LOGIN === $session['cmd'] || self::COMMAND_ENABLE === $session['cmd'] ) {
@@ -669,6 +669,10 @@ class SQRLLogin {
 		} else {
 			header( 'Location: ' . get_option( 'sqrl_redirect_url' ), true );
 		}
+	}
+
+	public function terminate() {
+		exit();
 	}
 
 	/**
@@ -706,7 +710,7 @@ class SQRLLogin {
 		header( 'Content-Length: ' . strlen( $content ) );
 
 		echo $content;
-		exit();
+		terminate();
 	}
 
 	/**

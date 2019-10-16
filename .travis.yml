@@ -1,4 +1,6 @@
 # This uses newer and faster docker based build system
+# Based on https://github.com/Koodimonni/wordpress-test-template
+
 sudo: false
 
 language: php
@@ -33,4 +35,4 @@ before_script:
 script:
   - phpcs --standard=rulesset.xml ./sqrl-login.php
   - phpunit
-  - php coverage-checker.php clover.xml 5  
+  - php coverage-checker.php clover.xml 5
