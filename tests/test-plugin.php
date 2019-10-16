@@ -43,12 +43,11 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin = $this->createMock(SQRLLogin::class);
     $sqrlLogin
       ->expects($this->once()) 
-      ->method('respondWithMessage')
+      ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        echo $strOutput;
+        var_dump($strOutput);
         $containsAnswer = strstr($strOutput, "tif=0") !== false;
-        $this->assertTrue($containsAnswer);
-
+        PHPUnit_Framework_Assert::assertTrue($containsAnswer);
       }));
 
     $sqrlLogin->exit_with_error_code( 0 );    
