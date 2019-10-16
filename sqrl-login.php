@@ -671,6 +671,9 @@ class SQRLLogin {
 		}
 	}
 
+	/**
+	 * This function is pretty much here for the capability to mock it out in tests.
+	 */
 	public function terminate() {
 		exit();
 	}
