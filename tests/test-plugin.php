@@ -41,7 +41,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_exit_with_error_code() {
     $sqrlLogin = $this->createMock(SQRLLogin::class);
-    $sqrlLogin->method('terminate')->willReturn();
+    $sqrlLogin->method('terminate')->willReturn("");
 
     ob_start();
     $sqrlLogin->exit_with_error_code( 0 );
