@@ -45,7 +45,7 @@ class PluginTest extends WP_UnitTestCase {
 
     $sqrlLogin = $this
         ->getMockBuilder('SQRLLogin')
-        ->setMethods(array('respond_with_message'))
+        ->setMethods(array('respond_with_message($strOutput)'))
         ->getMock();
 
 
