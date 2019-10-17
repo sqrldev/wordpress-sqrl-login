@@ -47,7 +47,8 @@ class PluginTest extends WP_UnitTestCase {
 
     $sqrlLogin
       ->expects($this->once()) 
-      ->method('terminate');
+      ->method('terminate')
+      ->will($this->returnValue(0));
 
     ob_start();
     $sqrlLogin->exit_with_error_code( 0 );
