@@ -40,23 +40,14 @@ class PluginTest extends WP_UnitTestCase {
   }
 
   function test_exit_with_error_code() {
-//    $sqrlLogin = $this->createMock(SQRLLogin::class);
-
-
     $sqrlLogin = $this
         ->getMockBuilder('SQRLLogin')
-        ->setMethods(array('respond_with_message($strOutput)'))
+        ->setMethods(array('terminate'))
         ->getMock();
-
 
     $sqrlLogin
       ->expects($this->once()) 
-      ->method('respond_with_message')
-      ->will($this->returnCallback(function($strOutput) {
-        var_dump($strOutput);
-        $containsAnswer = strstr($strOutput, "tif=0") !== false;
-        PHPUnit_Framework_Assert::assertTrue($containsAnswer);
-      }));
+      ->method('terminate');
 
     $sqrlLogin->exit_with_error_code( 0 );    
   }

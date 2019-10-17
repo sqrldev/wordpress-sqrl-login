@@ -672,15 +672,9 @@ class SQRLLogin {
 	}
 
 	/**
-	 * This function is used to respond to the user with an message on API calls.
-	 *
-	 * @param string $content  String with the text to display to the client contacting the API endpoint.
+	 * This function is terminating the execution and mostly for mocking purposes.
 	 */
-	public function respond_with_message( $content ) {
-		header( 'Content-Type: application/x-www-form-urlencoded' );
-		header( 'Content-Length: ' . strlen( $content ) );
-
-		echo $content;
+	public function terminate() {
 		exit();
 	}
 
@@ -715,7 +709,11 @@ class SQRLLogin {
 		error_log( 'Failed response: ' . print_r( $response, true ) );
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		respond_with_message( $content );
+		header( 'Content-Type: application/x-www-form-urlencoded' );
+		header( 'Content-Length: ' . strlen( $content ) );
+
+		echo $content;
+		terminate();
 	}
 
 	/**
@@ -1127,7 +1125,11 @@ class SQRLLogin {
 		 * Display the result as an base64url encoded string.
 		 */
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		respond_with_message( $content );
+		header( 'Content-Type: application/x-www-form-urlencoded' );
+		header( 'Content-Length: ' . strlen( $content ) );
+
+		echo $content;
+		terminate();
 	}
 
 	/**
