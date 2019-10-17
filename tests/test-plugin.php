@@ -40,6 +40,9 @@ class PluginTest extends WP_UnitTestCase {
   }
 
   function test_exit_with_error_code() {
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'terminate' ] )->getMock();
+    $sqrlLogin->expects( $this->any() )->method( 'terminate' )->will( $this->returnValue( true ) );
+/*
     $sqrlLogin = $this
       ->getMockBuilder('SQRLLogin')
       ->setMethods(array('terminate'))
@@ -49,6 +52,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once()) 
       ->method('terminate')
       ->will($this->returnValue(0));
+*/
 
     ob_start();
     $sqrlLogin->exit_with_error_code( 0 );
