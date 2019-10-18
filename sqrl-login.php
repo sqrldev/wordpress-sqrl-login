@@ -797,7 +797,7 @@ class SQRLLogin {
 				sanitize_text_field( wp_unslash( $_POST['client'] ) ) . sanitize_text_field( wp_unslash( $_POST['server'] ) ),
 				$this->base64url_decode( $client['idk'] )
 			);
-		} catch (SodiumException $e) {
+		} catch ( SodiumException $e ) {
 			error_log( $e->getMessage() );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
@@ -818,7 +818,7 @@ class SQRLLogin {
 					sanitize_text_field( wp_unslash( $_POST['client'] ) ) . sanitize_text_field( wp_unslash( $_POST['server'] ) ),
 					$this->base64url_decode( sanitize_text_field( wp_unslash( $client['pidk'] ) ) )
 				);
-			} catch (SodiumException $e) {
+			} catch ( SodiumException $e ) {
 				error_log( $e->getMessage() );
 				$this->exit_with_error_code( self::CLIENT_FAILURE );
 			}
