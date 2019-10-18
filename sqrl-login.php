@@ -711,8 +711,8 @@ class SQRLLogin {
 			$nut = $this->generate_random_string();
 			set_transient( $nut, $transient_session, self::SESSION_TIMEOUT );
 
-			$response[]      = 'nut=' . $nut;
-			$response[]      = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
+			$response[] = 'nut=' . $nut;
+			$response[] = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
 		}
 
 		if ( $client_provided_session ) {
