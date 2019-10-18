@@ -47,25 +47,28 @@ class PluginTest extends WP_UnitTestCase {
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
         $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
-        var_dump($strOutput);
         $containsAnswer = strstr($strOutput, "tif=0") !== false;
         $this->assertTrue($containsAnswer);
       }));
 
     $sqrlLogin->exit_with_error_code( 0 );
+  }
 
-//    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'terminate' ] )->getMock();
-//    $sqrlLogin->expects( $this->any() )->method( 'terminate' )->will( $this->returnValue( true ) );
-/*
-    ob_start();
-    $sqrlLogin->exit_with_error_code( 0 );
-    $strOutput = ob_get_contents();
-    ob_end_clean();
 
-    var_dump($strOutput);
-    $containsAnswer = strstr($strOutput, "tif=0") !== false;
-    PHPUnit_Framework_Assert::assertTrue($containsAnswer);
-*/
+  function test_exit_with_error_code_with_cps() {
+
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        var_dump($strOutput);
+        $containsAnswer = strstr($strOutput, "url=") !== false;
+        $this->assertTrue($containsAnswer);
+      }));
+
+    $sqrlLogin->exit_with_error_code( 0, true );
   }
 }
 

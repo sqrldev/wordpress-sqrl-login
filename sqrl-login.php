@@ -703,13 +703,14 @@ class SQRLLogin {
 		$response[] = 'tif=' . dechex( $ret_val );
 		$response[] = 'sin=0';
 
+		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
+
 		if ( $transient_session ) {
 			list( , $path_len_param ) = $this->get_domain_and_path_length();
 
 			$nut = $this->generate_random_string();
 			set_transient( $nut, $transient_session, self::SESSION_TIMEOUT );
 
-			$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
 			$response[]      = 'nut=' . $nut;
 			$response[]      = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
 		}
