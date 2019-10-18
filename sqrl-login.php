@@ -798,7 +798,7 @@ class SQRLLogin {
 				$this->base64url_decode( $client['idk'] )
 			);
 		} catch (SodiumException $e) {
-			error_log( $e->message );
+			error_log( $e->getMessage() );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
 
@@ -812,11 +812,17 @@ class SQRLLogin {
 		 * the current authentication.
 		 */
 		if ( ! empty( $client['pidk'] ) ) {
-			$result = sodium_crypto_sign_verify_detached(
-				$this->base64url_decode( sanitize_text_field( wp_unslash( $_POST['pids'] ) ) ),
-				sanitize_text_field( wp_unslash( $_POST['client'] ) ) . sanitize_text_field( wp_unslash( $_POST['server'] ) ),
-				$this->base64url_decode( sanitize_text_field( wp_unslash( $client['pidk'] ) ) )
-			);
+			try {
+				$result = sodium_crypto_sign_verify_detached(
+					$this->base64url_decode( sanitize_text_field( wp_unslash( $_POST['pids'] ) ) ),
+					sanitize_text_field( wp_unslash( $_POST['client'] ) ) . sanitize_text_field( wp_unslash( $_POST['server'] ) ),
+					$this->base64url_decode( sanitize_text_field( wp_unslash( $client['pidk'] ) ) )
+				);
+			} catch (SodiumException $e) {
+				error_log( $e->getMessage() );
+				$this->exit_with_error_code( self::CLIENT_FAILURE );
+			}
+
 			if ( ! $result ) {
 				error_log( 'Incorrect previous signature' );
 				$this->exit_with_error_code( self::CLIENT_FAILURE );
