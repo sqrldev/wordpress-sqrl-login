@@ -95,8 +95,9 @@ class PluginTest extends WP_UnitTestCase {
         $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
         $containsAnswer = strstr($strOutput, "tif=80") !== false;
         $this->assertTrue($containsAnswer);
-        throw new Exception('Stop here, we are done.');
+        throw new InvalidArgumentException();
       }));
+    $this->expectException(InvalidArgumentException::class);
 
     $sqrlLogin->api_callback();
   }
