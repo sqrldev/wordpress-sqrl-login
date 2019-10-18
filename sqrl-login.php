@@ -721,7 +721,7 @@ class SQRLLogin {
 		error_log( 'Failed response: ' . print_r( $response, true ) );
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		respond_with_message( $content );
+		$this->respond_with_message( $content );
 	}
 
 	/**
@@ -1133,7 +1133,7 @@ class SQRLLogin {
 		 * Display the result as an base64url encoded string.
 		 */
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		respond_with_message( $content );
+		$this->respond_with_message( $content );
 	}
 
 	/**
