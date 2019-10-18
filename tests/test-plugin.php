@@ -116,6 +116,8 @@ class PluginTest extends WP_UnitTestCase {
       }));
     $this->expectException(InvalidArgumentException::class);
     $_POST["client"] = "*&%¤";
+    $_POST["server"] = "1234";
+    $_POST["ids"] = "1234";
     $sqrlLogin->api_callback();
   }
 
@@ -134,6 +136,7 @@ class PluginTest extends WP_UnitTestCase {
     $this->expectException(InvalidArgumentException::class);
     $_POST["client"] = "1234";
     $_POST["server"] = "*&%¤";
+    $_POST["ids"] = "1234";
     $sqrlLogin->api_callback();
   }
 
