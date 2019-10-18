@@ -733,7 +733,7 @@ class SQRLLogin {
 
 		// Fix to handle google bot trying to connect to the callback URL.
 		// Looking for required post parameters and exit if missing.
-		if ( empty( $_POST['client'] ) || empty( $_POST['server'] ) || empty( $_POST['ids'] ) ) {
+		if ( ! isset( $_POST['client'] ) || ! isset( $_POST['server'] ) || ! isset( $_POST['ids'] ) ) {
 			error_log( 'Missing required parameter' );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
