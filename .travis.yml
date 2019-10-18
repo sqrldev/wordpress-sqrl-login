@@ -35,4 +35,4 @@ before_script:
 script:
   - phpcs --standard=rulesset.xml ./sqrl-login.php
   - phpunit
-  - php coverage-checker.php clover.xml 5
+  - php coverage-checker.php clover.xml 10

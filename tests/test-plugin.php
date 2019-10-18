@@ -69,5 +69,20 @@ class PluginTest extends WP_UnitTestCase {
 
     $sqrlLogin->exit_with_error_code( 0, true );
   }
+
+  function test_exit_with_error_code_with_transient_session() {
+
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $containsAnswer = strstr($strOutput, "qry=/wp-admin/admin-post.php?action=sqrl_auth&nut=") !== false;
+        $this->assertTrue($containsAnswer);
+      }));
+
+    $sqrlLogin->exit_with_error_code( 0, false, array() );
+  }
 }
 
