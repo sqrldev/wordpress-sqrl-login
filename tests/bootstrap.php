@@ -28,3 +28,6 @@ function _manually_load_plugin() {
 }
 
 require $_tests_dir . '/includes/bootstrap.php';
+
+
+define('WP_DEBUG', false);

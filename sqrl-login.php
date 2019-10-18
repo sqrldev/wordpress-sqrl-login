@@ -117,7 +117,7 @@ class SQRLLogin {
 	 * @param string $message Message to log.
 	 */
 	public function sqrl_logging( $message ) {
-		if( WP_DEBUG === true ) {
+		if ( WP_DEBUG === true ) {
 			error_log( $message );
 		}
 	}

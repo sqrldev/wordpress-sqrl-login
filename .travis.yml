@@ -29,7 +29,7 @@ install:
   - chmod 755 ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit
 
 before_script:
-  - git clone https://github.com/Koodimonni/wordpress-test-template wp-tests
+  - git clone https://github.com/kalaspuffar/wordpress-test-template wp-tests
   - bash wp-tests/bin/install-wp-tests.sh test root '' localhost $WP_VERSION
 
 script:
