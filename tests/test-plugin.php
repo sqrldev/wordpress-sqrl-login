@@ -102,6 +102,98 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
+  function test_api_callback_with_incorrect_client() {
 
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $containsAnswer = strstr($strOutput, "tif=20") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+    $_POST["client"] = "*&%¤";
+    $sqrlLogin->api_callback();
+  }
+
+  function test_api_callback_with_incorrect_server() {
+
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $containsAnswer = strstr($strOutput, "tif=20") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+    $_POST["client"] = "1234";
+    $_POST["server"] = "*&%¤";
+    $sqrlLogin->api_callback();
+  }
+
+  function test_api_callback_with_incorrect_ids() {
+
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $containsAnswer = strstr($strOutput, "tif=20") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+    $_POST["client"] = "1234";
+    $_POST["server"] = "1234";
+    $_POST["ids"] = "*&%¤";
+    $sqrlLogin->api_callback();
+  }
+
+  function test_api_callback_with_incorrect_pids() {
+
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $containsAnswer = strstr($strOutput, "tif=20") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+    $_POST["client"] = "1234";
+    $_POST["server"] = "1234";
+    $_POST["ids"] = "1234";
+    $_POST["pids"] = "*&%¤";
+    $sqrlLogin->api_callback();
+  }
+
+  function test_api_callback_with_incorrect_urs() {
+
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $containsAnswer = strstr($strOutput, "tif=20") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+    $_POST["client"] = "1234";
+    $_POST["server"] = "1234";
+    $_POST["ids"] = "1234";
+    $_POST["urs"] = "*&%¤";
+    $sqrlLogin->api_callback();
+  }
 }
 
