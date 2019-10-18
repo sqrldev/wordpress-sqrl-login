@@ -82,7 +82,7 @@ class PluginTest extends WP_UnitTestCase {
         $this->assertTrue($containsAnswer);
       }));
 
-    $sqrlLogin->exit_with_error_code( 0, false, array() );
+    $sqrlLogin->exit_with_error_code( 0, false, array('nut' => 'abcd') );
   }
 }
 
