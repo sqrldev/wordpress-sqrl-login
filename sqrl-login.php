@@ -1473,7 +1473,7 @@ class SQRLLogin {
 	 *
 	 * @param string $data   Data to decode from base64 url.
 	 */
-	public function base64url_decode( $data ) {
+	private function base64url_decode( $data ) {
 		return base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $data ) );
 	}
 

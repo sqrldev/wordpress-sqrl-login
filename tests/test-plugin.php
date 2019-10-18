@@ -2,6 +2,15 @@
 
 class PluginTest extends WP_UnitTestCase {
 
+  private function base64url_encode( $data ) {
+		$data = str_replace( array( '+', '/' ), array( '-', '_' ), base64_encode( $data ) );
+		$data = rtrim( $data, '=' );
+		return $data;
+	}
+	private function base64url_decode( $data ) {
+		return base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $data ) );
+	}
+
   // Check that that activation doesn't break
   function test_plugin_activated() {
     $this->assertTrue( is_plugin_active( PLUGIN_PATH ) );
@@ -46,7 +55,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=0") !== false;
         $this->assertTrue($containsAnswer);
       }));
@@ -62,7 +71,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "url=https://example.org/wp-admin/admin-post.php?action=sqrl_logout&message=4") !== false;
         $this->assertTrue($containsAnswer);
       }));
@@ -77,7 +86,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "qry=/wp-admin/admin-post.php?action=sqrl_auth&nut=") !== false;
         $this->assertTrue($containsAnswer);
       }));
@@ -92,7 +101,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=80") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -109,7 +118,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=20") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -128,7 +137,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=20") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -147,7 +156,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=20") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -166,7 +175,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=20") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -186,7 +195,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=20") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -206,13 +215,13 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
+        $strOutput = $this->base64url_decode( $strOutput );
         $containsAnswer = strstr($strOutput, "tif=80") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
       }));
     $this->expectException(InvalidArgumentException::class);
-    $_POST["client"] = "1234";
+    $_POST["client"] = $this->base64url_encode("idk=1234");
     $_POST["server"] = "1234";
     $_POST["ids"] = "1234";
     $sqrlLogin->api_callback();
