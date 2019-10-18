@@ -791,11 +791,17 @@ class SQRLLogin {
 		/**
 		 * Check the user call that we have a valid signature for the current authentication.
 		 */
-		$result = sodium_crypto_sign_verify_detached(
-			$this->base64url_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ) ),
-			sanitize_text_field( wp_unslash( $_POST['client'] ) ) . sanitize_text_field( wp_unslash( $_POST['server'] ) ),
-			$this->base64url_decode( $client['idk'] )
-		);
+		try {
+			$result = sodium_crypto_sign_verify_detached(
+				$this->base64url_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ) ),
+				sanitize_text_field( wp_unslash( $_POST['client'] ) ) . sanitize_text_field( wp_unslash( $_POST['server'] ) ),
+				$this->base64url_decode( $client['idk'] )
+			);
+		} catch (SodiumException $e) {
+			error_log( $e->message );
+			$this->exit_with_error_code( self::CLIENT_FAILURE );
+		}
+
 		if ( ! $result ) {
 			error_log( 'Incorrect signature' );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );

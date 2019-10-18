@@ -208,8 +208,7 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
-  function test_api_callback_with_incorrect_ids_signature() {
-
+  function test_api_callback_with_faulty_key() {
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
       ->expects($this->once())
