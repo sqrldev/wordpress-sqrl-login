@@ -15,7 +15,7 @@ class PluginTest extends WP_UnitTestCase {
     $this->assertEquals( '<div id="login_error">SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.</div>', $message );
 
     $_SERVER['HTTPS'] = 1;
-    $message = $sqrlLogin->user_login_message("test"); 
+    $message = $sqrlLogin->user_login_message("test");
     $this->assertEquals( "test", $message );
 
     $_GET['message'] = SQRLLogin::MESSAGE_DISABLED;
@@ -40,28 +40,30 @@ class PluginTest extends WP_UnitTestCase {
   }
 
   function test_exit_with_error_code() {
-    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'terminate' ] )->getMock();
-    $sqrlLogin->expects( $this->any() )->method( 'terminate' )->will( $this->returnValue( true ) );
-/*
-    $sqrlLogin = $this
-      ->getMockBuilder('SQRLLogin')
-      ->setMethods(array('terminate'))
-      ->getMock();
 
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
-      ->expects($this->once()) 
-      ->method('terminate')
-      ->will($this->returnValue(0));
-*/
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = $sqrlLogin->base64url_decode($strOutput);
+        var_dump($strOutput);
+        $containsAnswer = strstr($strOutput, "tif=0") !== false;
+        $this->assertTrue($containsAnswer);
+      }));
 
+//    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'terminate' ] )->getMock();
+//    $sqrlLogin->expects( $this->any() )->method( 'terminate' )->will( $this->returnValue( true ) );
+/*
     ob_start();
     $sqrlLogin->exit_with_error_code( 0 );
     $strOutput = ob_get_contents();
-    ob_end_clean(); 
+    ob_end_clean();
 
     var_dump($strOutput);
     $containsAnswer = strstr($strOutput, "tif=0") !== false;
     PHPUnit_Framework_Assert::assertTrue($containsAnswer);
+*/
   }
 }
 

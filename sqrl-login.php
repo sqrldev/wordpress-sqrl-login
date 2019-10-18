@@ -672,6 +672,18 @@ class SQRLLogin {
 	}
 
 	/**
+	 * This function is used to respond to the user with an message on API calls.
+	 *
+	 * @param string $content  String with the text to display to the client contacting the API endpoint.
+	 */
+	public function respond_with_message( $content ) {
+		header( 'Content-Type: application/x-www-form-urlencoded' );
+		header( 'Content-Length: ' . strlen( $content ) );
+		echo $content;
+		exit();
+	}
+
+	/**
 	 * This function is terminating the execution and mostly for mocking purposes.
 	 */
 	public function terminate() {
@@ -709,13 +721,7 @@ class SQRLLogin {
 		error_log( 'Failed response: ' . print_r( $response, true ) );
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		if ( ! headers_sent() ) {
-			header( 'Content-Type: application/x-www-form-urlencoded' );
-			header( 'Content-Length: ' . strlen( $content ) );
-		}
-
-		echo $content;
-		$this->terminate();
+		respond_with_message( $content );
 	}
 
 	/**
@@ -1127,13 +1133,7 @@ class SQRLLogin {
 		 * Display the result as an base64url encoded string.
 		 */
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
-		if ( ! headers_sent() ) {
-			header( 'Content-Type: application/x-www-form-urlencoded' );
-			header( 'Content-Length: ' . strlen( $content ) );
-		}
-
-		echo $content;
-		$this->terminate();
+		respond_with_message( $content );
 	}
 
 	/**
@@ -1472,7 +1472,7 @@ class SQRLLogin {
 	 *
 	 * @param string $data   Data to decode from base64 url.
 	 */
-	private function base64url_decode( $data ) {
+	public function base64url_decode( $data ) {
 		return base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $data ) );
 	}
 
