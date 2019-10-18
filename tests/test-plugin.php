@@ -46,7 +46,7 @@ class PluginTest extends WP_UnitTestCase {
       ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
-        $strOutput = $sqrlLogin->base64url_decode($strOutput);
+        $strOutput = base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $strOutput ) );
         var_dump($strOutput);
         $containsAnswer = strstr($strOutput, "tif=0") !== false;
         $this->assertTrue($containsAnswer);
