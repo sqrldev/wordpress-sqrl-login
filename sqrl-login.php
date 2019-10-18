@@ -111,6 +111,18 @@ class SQRLLogin {
 	}
 
 	/**
+	 * This function handle the logging of the plugin so you may turn it on in your installation if you want
+	 * to find the reason something does not work.
+	 *
+	 * @param string $message Message to log.
+	 */
+	public function sqrl_logging( $message ) {
+		if( WP_DEBUG === true ) {
+			error_log( $message );
+		}
+	}
+
+	/**
 	 * Function to save the association and to create an anonymous account.
 	 */
 	public function anonymous_registration() {
@@ -570,7 +582,7 @@ class SQRLLogin {
 	 */
 	private function only_allow_base64_url( $s ) {
 		if ( ! preg_match( '/^[a-zA-Z0-9_-]*$/', $s ) ) {
-			error_log( 'Incorrect input ' . $s );
+			sqrl_logging( 'Incorrect input ' . $s );
 			$this->exit_with_error_code( self::TRANSIENT_ERROR );
 		}
 	}
@@ -719,7 +731,7 @@ class SQRLLogin {
 			$response[] = 'url=' . $this->get_server_url_without_path() . $admin_post_path . '?action=sqrl_logout&message=' . self::MESSAGE_ERROR;
 		}
 
-		error_log( 'Failed response: ' . print_r( $response, true ) );
+		sqrl_logging( 'Failed response: ' . print_r( $response, true ) );
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
 		$this->respond_with_message( $content );
@@ -734,7 +746,7 @@ class SQRLLogin {
 		// Fix to handle google bot trying to connect to the callback URL.
 		// Looking for required post parameters and exit if missing.
 		if ( ! isset( $_POST['client'] ) || ! isset( $_POST['server'] ) || ! isset( $_POST['ids'] ) ) {
-			error_log( 'Missing required parameter' );
+			sqrl_logging( 'Missing required parameter' );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
 
@@ -798,12 +810,12 @@ class SQRLLogin {
 				$this->base64url_decode( $client['idk'] )
 			);
 		} catch ( SodiumException $e ) {
-			error_log( $e->getMessage() );
+			sqrl_logging( $e->getMessage() );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
 
 		if ( ! $result ) {
-			error_log( 'Incorrect signature' );
+			sqrl_logging( 'Incorrect signature' );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
 
@@ -819,12 +831,12 @@ class SQRLLogin {
 					$this->base64url_decode( sanitize_text_field( wp_unslash( $client['pidk'] ) ) )
 				);
 			} catch ( SodiumException $e ) {
-				error_log( $e->getMessage() );
+				sqrl_logging( $e->getMessage() );
 				$this->exit_with_error_code( self::CLIENT_FAILURE );
 			}
 
 			if ( ! $result ) {
-				error_log( 'Incorrect previous signature' );
+				sqrl_logging( 'Incorrect previous signature' );
 				$this->exit_with_error_code( self::CLIENT_FAILURE );
 			}
 		}
@@ -877,7 +889,7 @@ class SQRLLogin {
 		 * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
 		 */
 		if ( empty( $transient_session ) ) {
-			error_log( 'Missing transient session' );
+			sqrl_logging( 'Missing transient session' );
 			$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
 		}
 
@@ -1003,7 +1015,7 @@ class SQRLLogin {
 			}
 
 			if ( ! $user ) {
-				error_log( 'User is missing, can\'t disable' );
+				sqrl_logging( 'User is missing, can\'t disable' );
 				$this->exit_with_error_code( self::COMMAND_FAILED, $client_provided_session, $transient_session );
 			}
 
@@ -1037,11 +1049,11 @@ class SQRLLogin {
 				$user = $this->get_user_id( $client['pidk'] );
 			}
 			if ( empty( $user ) ) {
-				error_log( 'User is missing, can\'t be enable' );
+				sqrl_logging( 'User is missing, can\'t be enable' );
 				$this->exit_with_error_code( self::COMMAND_FAILED, $client_provided_session, $transient_session );
 			}
 			if ( ! $this->account_disabled( $client ) ) {
-				error_log( 'User is not disabled, can\'t be enable' );
+				sqrl_logging( 'User is not disabled, can\'t be enable' );
 				$this->exit_with_error_code( self::COMMAND_FAILED, $client_provided_session, $transient_session );
 			}
 
@@ -1051,7 +1063,7 @@ class SQRLLogin {
 				$this->base64url_decode( $this->get_verify_unlock_key( $client ) )
 			);
 			if ( ! $result ) {
-				error_log( 'Incorrect Unlock Request signature' );
+				sqrl_logging( 'Incorrect Unlock Request signature' );
 				$this->exit_with_error_code( self::COMMAND_FAILED, $client_provided_session, $transient_session );
 			}
 
@@ -1084,7 +1096,7 @@ class SQRLLogin {
 				$user = $this->get_user_id( $client['pidk'] );
 			}
 			if ( empty( $user ) ) {
-				error_log( 'User is missing, can\'t be removed' );
+				sqrl_logging( 'User is missing, can\'t be removed' );
 				$this->exit_with_error_code( self::COMMAND_FAILED, $client_provided_session, $transient_session );
 			}
 
@@ -1094,7 +1106,7 @@ class SQRLLogin {
 				$this->base64url_decode( $this->get_verify_unlock_key( $client ) )
 			);
 			if ( ! $result ) {
-				error_log( 'Incorrect Unlock Request signature' );
+				sqrl_logging( 'Incorrect Unlock Request signature' );
 				$this->exit_with_error_code( self::COMMAND_FAILED, $client_provided_session, $transient_session );
 			}
 
@@ -1119,7 +1131,7 @@ class SQRLLogin {
 			/**
 			 * If we have an unknown command, Not implemented yet we should print the client request and die.
 			 */
-			error_log( print_r( $client, true ) );
+			sqrl_logging( print_r( $client, true ) );
 			$this->exit_with_error_code( self::FUNCTION_NOT_SUPPORTED, $client_provided_session, $transient_session );
 		}
 
