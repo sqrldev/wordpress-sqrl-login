@@ -52,6 +52,8 @@ class PluginTest extends WP_UnitTestCase {
         $this->assertTrue($containsAnswer);
       }));
 
+    $sqrlLogin->exit_with_error_code( 0 );
+
 //    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'terminate' ] )->getMock();
 //    $sqrlLogin->expects( $this->any() )->method( 'terminate' )->will( $this->returnValue( true ) );
 /*
