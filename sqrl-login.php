@@ -165,10 +165,10 @@ class SQRLLogin {
 		$nut = sanitize_text_field( wp_unslash( $_GET['nut'] ) );
 		$this->only_allow_base64_url( $nut );
 
-		$sqrl_registration_option_title     = __( 'Registration selection', 'sqrl' );
-		$sqrl_registration_option_header    = __( 'Select registration option', 'sqrl' );
-		$sqrl_registration_option_anonymous = __( 'Anonymous registration', 'sqrl' );
-		$sqrl_registration_option_normal    = __( 'Normal registration', 'sqrl' );
+		$sqrl_registration_option_title     = esc_html__( 'Registration selection', 'sqrl' );
+		$sqrl_registration_option_header    = esc_html__( 'Select registration option', 'sqrl' );
+		$sqrl_registration_option_anonymous = esc_html__( 'Anonymous registration', 'sqrl' );
+		$sqrl_registration_option_normal    = esc_html__( 'Normal registration', 'sqrl' );
 
 		$register_url = site_url( 'wp-login.php', 'https' );
 		$register_url = add_query_arg( 'action', 'register', $register_url );
@@ -305,9 +305,9 @@ class SQRLLogin {
 	 * Function to show options in the admin pages.
 	 */
 	public function options_page() {
-		$settings_title = __( 'SQRL Login settings', 'sqrl' );
-		$redirect_title = __( 'Redirect URL', 'sqrl' );
-		$redirect_desc  = __( 'This URL is used to redirect the user after login if no redirect_to variable has been set.', 'sqrl' );
+		$settings_title = esc_html__( 'SQRL Login settings', 'sqrl' );
+		$redirect_title = esc_html__( 'Redirect URL', 'sqrl' );
+		$redirect_desc  = esc_html__( 'This URL is used to redirect the user after login if no redirect_to variable has been set.', 'sqrl' );
 		?>
 		<div class="wpbody-content">
 			<div class="wrap">
@@ -324,7 +324,7 @@ class SQRLLogin {
 									type="text"
 									id="sqrl_redirect_url"
 									name="sqrl_redirect_url"
-									value="<?php echo get_option( 'sqrl_redirect_url' ); ?>"
+									value="<?php echo esc_url( get_option( 'sqrl_redirect_url' ) ); ?>"
 									class="regular-text ltr"
 								/>
 								<p class="description" id="sqrl_redirect_url_description">
@@ -356,9 +356,9 @@ class SQRLLogin {
 	public function associate_sqrl( $user ) {
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
 
-		$sqrl_settings_title = __( 'SQRL settings', 'sqrl' );
-		$disassociate_button = __( 'Disassociate', 'sqrl' );
-		$hardlock_disclaimer = __( 'The hardlock option is set on this account but there is no real way to assure that it\'s honored by all WordPress implementations.', 'sqrl' );
+		$sqrl_settings_title = esc_html__( 'SQRL settings', 'sqrl' );
+		$disassociate_button = esc_html__( 'Disassociate', 'sqrl' );
+		$hardlock_disclaimer = esc_html__( 'The hardlock option is set on this account but there is no real way to assure that it\'s honored by all WordPress implementations.', 'sqrl' );
 
 		?>
 		<h3><?php echo $sqrl_settings_title; ?></h3>
@@ -471,19 +471,19 @@ class SQRLLogin {
 	 */
 	public function add_to_login_form( $user = false, $associated = false ) {
 		if ( get_option( 'users_can_register' ) ) {
-			$button_label = __( 'Sign in or Register with SQRL', 'sqrl' );
-			$qrcode_label = __( 'You may also sign in or register with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl' );
+			$button_label = esc_html__( 'Sign in or Register with SQRL', 'sqrl' );
+			$qrcode_label = esc_html__( 'You may also sign in or register with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl' );
 		} else {
-			$button_label = __( 'Sign in with SQRL', 'sqrl' );
-			$qrcode_label = __( 'You may also sign in with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl' );
+			$button_label = esc_html__( 'Sign in with SQRL', 'sqrl' );
+			$qrcode_label = esc_html__( 'You may also sign in with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl' );
 		}
 
 		if ( $associated ) {
-			$button_label = __( 'Change your account', 'sqrl' );
-			$qrcode_label = __( 'Scan QR code or click button to change account. Using your client you can disable, enable and remove the account.', 'sqrl' );
+			$button_label = esc_html__( 'Change your account', 'sqrl' );
+			$qrcode_label = esc_html__( 'Scan QR code or click button to change account. Using your client you can disable, enable and remove the account.', 'sqrl' );
 		} elseif ( $user ) {
-			$button_label = __( 'Associate with account', 'sqrl' );
-			$qrcode_label = __( 'Scan QR code or click button to associate to this account.', 'sqrl' );
+			$button_label = esc_html__( 'Associate with account', 'sqrl' );
+			$qrcode_label = esc_html__( 'Scan QR code or click button to associate to this account.', 'sqrl' );
 		}
 
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
@@ -531,7 +531,7 @@ class SQRLLogin {
 				'session'           => $session,
 				'existingUserParam' => $user ? '&existingUser=1' : '',
 				'sqrlLoginURL'      => $sqrl_url,
-				'countDownDesc'     => __( 'Will look for QR Login in' ),
+				'countDownDesc'     => esc_html__( 'Will look for QR Login in' ),
 			)
 		);
 		wp_enqueue_script( 'reload' );
@@ -679,7 +679,7 @@ class SQRLLogin {
 		} elseif ( ! empty( $_GET['existingUser'] ) ) {
 			header( 'Location: ' . admin_url( 'profile.php' ), true );
 		} else {
-			header( 'Location: ' . get_option( 'sqrl_redirect_url' ), true );
+			header( 'Location: ' . esc_url( get_option( 'sqrl_redirect_url' ) ), true );
 		}
 	}
 
@@ -1242,23 +1242,23 @@ class SQRLLogin {
 	 */
 	public function user_login_message( $message = '' ) {
 		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === $_GET['message'] ) {
-			$message .= '<div id="login_error">' . __( 'Account disabled', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'Account disabled', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_REMOVED === $_GET['message'] ) {
-			$message .= '<div id="login_error">' . __( 'Identity disassociated from account', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'Identity disassociated from account', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_SQRLONLY === $_GET['message'] ) {
-			$message .= '<div id="login_error">' . __( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_ERROR === $_GET['message'] ) {
-			$message .= '<div id="login_error">' . __( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_REGISTRATION_NOT_ALLOWED === $_GET['message'] ) {
-			$message .= '<div id="login_error">' . __( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
 		}
 
 		if ( ! is_ssl() ) {
-			$message .= '<div id="login_error">' . __( 'SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'SQRL Login is only available for sites utilizing SSL connections. Please activate SSL before using SQRL Login.', 'sqrl' ) . '</div>';
 		}
 
 		return $message;
