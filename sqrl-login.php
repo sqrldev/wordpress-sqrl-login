@@ -344,7 +344,7 @@ class SQRLLogin {
 	 * This will add the style script used by the plugin code.
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_style( 'style', plugin_dir_url( __FILE__ ) . 'style.css', SCRIPT_VERSION, true );
+		wp_enqueue_style( 'style', plugin_dir_url( __FILE__ ) . 'style.css', self::SCRIPT_VERSION, true );
 	}
 
 	/**
