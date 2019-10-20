@@ -232,6 +232,9 @@ class PluginTest extends WP_UnitTestCase {
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
         $strOutput = $this->base64url_decode( $strOutput );
+
+        var_dump($strOutput);
+
         $containsAnswer = strstr($strOutput, "tif=80") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -243,7 +246,6 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
-/*
   function test_api_callback_with_faulty_idk_signature() {
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
@@ -264,6 +266,5 @@ class PluginTest extends WP_UnitTestCase {
     $_POST["ids"] = $signature;
     $sqrlLogin->api_callback();
   }
-*/  
 }
 

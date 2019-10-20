@@ -8,7 +8,6 @@ if ( ! $_tests_dir ) {
 /**
  * change PLUGIN_FILE env in phpunit.xml
  */
-define('WP_DEBUG', false);
 define('PLUGIN_FILE', getenv('PLUGIN_FILE') );
 define('PLUGIN_FOLDER', basename( dirname( __DIR__ ) ) );
 define('PLUGIN_PATH', PLUGIN_FOLDER.'/'.PLUGIN_FILE);
