@@ -29,7 +29,9 @@ install:
   - sudo apt-get install libsodium-dev
   - wget -O ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit https://phar.phpunit.de/phpunit-7.phar
   - chmod 755 ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit
-
+  - pecl install libsodium
+  - echo "extension=sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  
 before_script:
   - git clone https://github.com/kalaspuffar/wordpress-test-template wp-tests
   - bash wp-tests/bin/install-wp-tests.sh test root '' localhost $WP_VERSION
