@@ -266,9 +266,11 @@ class PluginTest extends WP_UnitTestCase {
       }));
     $this->expectException(InvalidArgumentException::class);
 
+    $secret = random_bytes(SODIUM_CRYPTO_SIGN_SECRETKEYBYTES);
+
     $_POST["client"] = $this->base64url_encode("idk=" . $this->idk_public);
     $_POST["server"] = "1234";
-    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_public);
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $secret);
 
     $_POST["ids"] = $signature;
     $sqrlLogin->api_callback();
