@@ -1,6 +1,25 @@
 <?php
 
 class PluginTest extends WP_UnitTestCase {
+  private $idk_secret;
+  private $idk_public;
+  private $iuk_secret;
+  private $iuk_public;
+  
+  
+
+  public function __construct() {
+    $idk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
+    $iuk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
+
+    $idk_pair = sodium_crypto_sign_seed_keypair($idk);
+    $this->idk_secret = sodium_crypto_sign_secretkey($idk_pair);
+    $this->idk_public = sodium_crypto_sign_publickey($idk_pair);
+
+    $iuk_pair = sodium_crypto_sign_seed_keypair($iuk);
+    $this->iuk_secret = sodium_crypto_sign_secretkey($iuk_pair);
+    $this->iuk_public = sodium_crypto_sign_publickey($iuk_pair);
+  }
 
   private function base64url_encode( $data ) {
 		$data = str_replace( array( '+', '/' ), array( '-', '_' ), base64_encode( $data ) );
@@ -225,5 +244,29 @@ class PluginTest extends WP_UnitTestCase {
     $_POST["ids"] = "1234";
     $sqrlLogin->api_callback();
   }
+
+  function test_api_callback_with_faulty_idk_signature() {
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = $this->base64url_decode( $strOutput );
+        $containsAnswer = strstr($strOutput, "tif=80") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+
+    $_POST["client"] = $this->base64url_encode("idk=" . $this->idk_public);
+    $_POST["server"] = "1234";
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_public);
+
+    $_POST["ids"] = $signature;
+    $sqrlLogin->api_callback();
+  }
+
+
+
 }
 
