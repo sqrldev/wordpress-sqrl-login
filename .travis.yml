@@ -24,24 +24,15 @@ matrix:
   allow_failures:
     - php: nightly
 
-before_install:
-  - git clone -b stable https://github.com/jedisct1/libsodium.git
-  - cd libsodium && sudo ./configure && sudo make check && sudo make install && cd ..
-  - '[[ "$TRAVIS_PHP_VERSION" == "nightly" ]] || phpenv config-rm xdebug.ini'
-
 install:
-#  - sudo apt-get update
-#  - sudo apt-get install libsodium-dev
   - wget -O ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit https://phar.phpunit.de/phpunit-7.phar
   - chmod 755 ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit
-#  - pecl install libsodium
-#  - echo "extension=sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   
 before_script:
   - git clone https://github.com/kalaspuffar/wordpress-test-template wp-tests
   - bash wp-tests/bin/install-wp-tests.sh test root '' localhost $WP_VERSION
-
 script:
   - phpcs --standard=rulesset.xml ./sqrl-login.php
+  - php -i | grep "sodium"
   - phpunit
   - php coverage-checker.php clover.xml 20

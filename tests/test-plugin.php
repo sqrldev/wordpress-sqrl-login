@@ -7,6 +7,13 @@ class PluginTest extends WP_UnitTestCase {
   private $iuk_public;
   
   public function __construct() {
+
+    var_dump([
+      SODIUM_LIBRARY_MAJOR_VERSION,
+      SODIUM_LIBRARY_MINOR_VERSION,
+      SODIUM_LIBRARY_VERSION
+    ]);
+
     $idk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
     $iuk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
 
