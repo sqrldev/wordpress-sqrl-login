@@ -6,11 +6,13 @@ class PluginTest extends WP_UnitTestCase {
   private $iuk_secret;
   private $iuk_public;
 
-  /*
   public function __construct() {
     $idk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
     $iuk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
 
+    var_dump($idk, $iuk);
+
+  /*
     $idk_pair = sodium_crypto_sign_seed_keypair($idk);
     $this->idk_secret = sodium_crypto_sign_secretkey($idk_pair);
     $this->idk_public = sodium_crypto_sign_publickey($idk_pair);
@@ -18,8 +20,8 @@ class PluginTest extends WP_UnitTestCase {
     $iuk_pair = sodium_crypto_sign_seed_keypair($iuk);
     $this->iuk_secret = sodium_crypto_sign_secretkey($iuk_pair);
     $this->iuk_public = sodium_crypto_sign_publickey($iuk_pair);
-  }
   */
+}
 
   private function base64url_encode( $data ) {
 		$data = str_replace( array( '+', '/' ), array( '-', '_' ), base64_encode( $data ) );
