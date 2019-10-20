@@ -6,8 +6,6 @@ class PluginTest extends WP_UnitTestCase {
   private $iuk_secret;
   private $iuk_public;
   
-  
-
   public function __construct() {
     $idk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
     $iuk = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
