@@ -17,6 +17,13 @@ class PluginTest extends WP_UnitTestCase {
     $iuk_pair = sodium_crypto_sign_seed_keypair($iuk);
     $this->iuk_secret = sodium_crypto_sign_secretkey($iuk_pair);
     $this->iuk_public = sodium_crypto_sign_publickey($iuk_pair);
+
+    unset($_POST["client"]);
+    unset($_POST["server"]);
+
+    unset($_POST["ids"]);
+    unset($_POST["pids"]);
+    unset($_POST["urs"]);
   }
 
   private function base64url_encode( $data ) {
