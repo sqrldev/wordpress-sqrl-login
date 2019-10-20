@@ -25,6 +25,8 @@ matrix:
     - php: nightly
 
 install:
+  - sudo apt-get update
+  - sudo apt-get install libsodium-dev
   - wget -O ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit https://phar.phpunit.de/phpunit-7.phar
   - chmod 755 ~/.phpenv/versions/$(phpenv version-name)/bin/phpunit
 
