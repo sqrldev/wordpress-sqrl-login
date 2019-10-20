@@ -25,6 +25,7 @@ matrix:
     - php: nightly
 
 before_install:
+  - git clone https://github.com/jedisct1/libsodium.git
   - cd libsodium && sudo ./configure && sudo make check && sudo make install && cd ..
   - '[[ "$TRAVIS_PHP_VERSION" == "nightly" ]] || phpenv config-rm xdebug.ini'
 
