@@ -239,9 +239,6 @@ class PluginTest extends WP_UnitTestCase {
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
         $strOutput = $this->base64url_decode( $strOutput );
-
-        var_dump($strOutput);
-
         $containsAnswer = strstr($strOutput, "tif=80") !== false;
         $this->assertTrue($containsAnswer);
         throw new InvalidArgumentException();
@@ -272,7 +269,7 @@ class PluginTest extends WP_UnitTestCase {
     $_POST["server"] = "1234";
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $secret);
 
-    $_POST["ids"] = $signature;
+    $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
   }
 }
