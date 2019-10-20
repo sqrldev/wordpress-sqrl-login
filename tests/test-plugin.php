@@ -265,7 +265,7 @@ class PluginTest extends WP_UnitTestCase {
 
     $secret = random_bytes(SODIUM_CRYPTO_SIGN_SECRETKEYBYTES);
 
-    $_POST["client"] = $this->base64url_encode("idk=" . $this->idk_public);
+    $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = "1234";
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $secret);
 
