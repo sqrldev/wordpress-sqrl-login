@@ -1241,19 +1241,19 @@ class SQRLLogin {
 	 * @param string $message  Original message.
 	 */
 	public function user_login_message( $message = '' ) {
-		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === $_GET['message'] ) {
+		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === (int) $_GET['message'] ) {
 			$message .= '<div id="login_error">' . esc_html__( 'Account disabled', 'sqrl' ) . '</div>';
 		}
-		if ( isset( $_GET['message'] ) && self::MESSAGE_REMOVED === $_GET['message'] ) {
+		if ( isset( $_GET['message'] ) && self::MESSAGE_REMOVED === (int) $_GET['message'] ) {
 			$message .= '<div id="login_error">' . esc_html__( 'Identity disassociated from account', 'sqrl' ) . '</div>';
 		}
-		if ( isset( $_GET['message'] ) && self::MESSAGE_SQRLONLY === $_GET['message'] ) {
+		if ( isset( $_GET['message'] ) && self::MESSAGE_SQRLONLY === (int) $_GET['message'] ) {
 			$message .= '<div id="login_error">' . esc_html__( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
 		}
-		if ( isset( $_GET['message'] ) && self::MESSAGE_ERROR === $_GET['message'] ) {
+		if ( isset( $_GET['message'] ) && self::MESSAGE_ERROR === (int) $_GET['message'] ) {
 			$message .= '<div id="login_error">' . esc_html__( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
 		}
-		if ( isset( $_GET['message'] ) && self::MESSAGE_REGISTRATION_NOT_ALLOWED === $_GET['message'] ) {
+		if ( isset( $_GET['message'] ) && self::MESSAGE_REGISTRATION_NOT_ALLOWED === (int) $_GET['message'] ) {
 			$message .= '<div id="login_error">' . esc_html__( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
 		}
 
