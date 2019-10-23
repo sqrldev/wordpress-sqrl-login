@@ -861,6 +861,8 @@ class SQRLLogin {
 			}
 		}
 
+		print_r($server);
+
 		/**
 		 * Explode the option array with all the SQRL options. Valid values are
 		 *
@@ -881,18 +883,23 @@ class SQRLLogin {
 			$client_provided_session = strpos( $client['opt'], 'cps' ) !== false;
 		}
 
+		print_r($server['nut']);
+
 		/**
 		 * Fetch the current transient session where we keep all session information.
 		 */
+		$transient_session = false;
 		if( isset( $server['nut'] ) ) {
 			$transient_session = get_transient( $server['nut'] );
+			print_r($transient_session);
+
 			delete_transient( $server['nut'] );
 		}
 
 		/**
 		 * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
 		 */
-		if ( empty( $transient_session ) ) {
+		if ( $transient_session !== false ) {
 			$this->sqrl_logging( 'Missing transient session' );
 			$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
 		}
