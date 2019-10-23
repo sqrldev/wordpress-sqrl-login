@@ -280,17 +280,11 @@ class PluginTest extends WP_UnitTestCase {
 
     $_POST["ids"] = $this->base64url_encode($signature);
 
+    print_r($_SERVER['HTTP_CLIENT_IP']);
+    print_r($_SERVER['HTTP_X_FORWARDED_FOR']);
+    print_r($_SERVER['REMOTE_ADDR']);
 
-    $_SERVER['REMOTE_ADDR'] = "1.1.1.1";
-    set_transient("1234", array("ip" => "1.1.1.1"), 60);
-    $sqrlLogin->api_callback();
-
-    $_SERVER['HTTP_X_FORWARDED_FOR'] = "2.2.2.2";
-    set_transient("1234", array("ip" => "2.2.2.2"), 60);
-    $sqrlLogin->api_callback();
-
-    $_SERVER['HTTP_CLIENT_IP'] = "3.3.3.3";
-    set_transient("1234", array("ip" => "3.3.3.3"), 60);
+    set_transient("1234", array("ip" => $_SERVER['HTTP_CLIENT_IP']), 60);
     $sqrlLogin->api_callback();
   }
 }
