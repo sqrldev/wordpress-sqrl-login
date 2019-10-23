@@ -849,7 +849,8 @@ class SQRLLogin {
 		 */
 		$server_str = explode( "\r\n", $this->base64url_decode( sanitize_text_field( wp_unslash( $_POST['server'] ) ) ) );
 		if ( count( $server_str ) === 1 ) {
-			foreach ( explode( '&', $server_str[0] ) as $k => $v ) {
+			$server_str = substr($server_str[0], strpos($server_str[0], "?") + 1);
+			foreach ( explode( '&', $server_str ) as $k => $v ) {
 				list( $key, $val ) = $this->value_pair( $v );
 				$server[ $key ]    = $val;
 			}
