@@ -316,7 +316,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_missing_suk_or_vuk() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=1",
+      "message" => "tif=80",
       "throw" => true
     ));
 
