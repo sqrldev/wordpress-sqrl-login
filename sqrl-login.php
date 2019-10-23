@@ -873,6 +873,7 @@ class SQRLLogin {
 		 *        retrieve the account when password is lost.
 		 */
 		$options = array();
+		$client_provided_session = false;
 		if( isset( $client['opt'] ) ) {
 			foreach ( explode( '~', $client['opt'] ) as $v ) {
 				$options[ $v ] = true;
