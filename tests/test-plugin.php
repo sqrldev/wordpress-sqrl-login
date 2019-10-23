@@ -314,7 +314,7 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
-  function test_api_callback_create_new_association() {
+  function test_api_callback_missing_suk_or_vuk() {
     $sqrlLogin = $this->createMockForResult(array(
       "message" => "tif=1",
       "throw" => true
@@ -323,6 +323,22 @@ class PluginTest extends WP_UnitTestCase {
     set_transient("1234", array("user" => 1, "session" => "dasasd"), 60);
 
     $_POST["client"] = $this->base64url_encode("cmd=ident\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+    $_POST["ids"] = $this->base64url_encode($signature);
+
+    $sqrlLogin->api_callback();
+  }
+
+  function test_api_callback_create_new_association() {
+    $sqrlLogin = $this->createMockForResult(array(
+      "message" => "tif=1",
+      "throw" => true
+    ));
+
+    set_transient("1234", array("user" => 1, "session" => "dasasd"), 60);
+
+    $_POST["client"] = $this->base64url_encode("cmd=ident\r\nsuk=dasasd\r\nvuk=dasasd\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
     $_POST["ids"] = $this->base64url_encode($signature);

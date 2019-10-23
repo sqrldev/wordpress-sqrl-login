@@ -1346,6 +1346,11 @@ class SQRLLogin {
 	 * @param object $client    Current client parameter sent from the client.
 	 */
 	private function associate_user( $user, $client ) {
+		if ( ! isset( $client['idk'] ) || ! isset( $client['suk'] ) || ! isset( $client['vuk'] ) ) {
+			$this->sqrl_logging( 'Missing required parameter' );
+			$this->exit_with_error_code( self::CLIENT_FAILURE );
+		}
+
 		update_user_meta( $user, 'sqrl_idk', sanitize_text_field( $client['idk'] ) );
 		update_user_meta( $user, 'sqrl_suk', sanitize_text_field( $client['suk'] ) );
 		update_user_meta( $user, 'sqrl_vuk', sanitize_text_field( $client['vuk'] ) );
