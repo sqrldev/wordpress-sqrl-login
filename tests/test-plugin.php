@@ -267,5 +267,23 @@ class PluginTest extends WP_UnitTestCase {
     $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
   }
+
+  function test_api_callback_check_for_ip_match() {
+    $sqrlLogin = $this->createMockForResult(array(
+      "message" => "tif=14",
+      "throw" => true
+    ));
+
+    set_transient("1234", array(
+      "ip" => $this->get_client_ip()
+    ), 60);
+
+    $_POST["client"] = $this->base64url_encode("cmd=dsajki\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+    $sqrlLogin->api_callback();
+  }
 }
 
