@@ -849,7 +849,7 @@ class SQRLLogin {
 		 */
 		$server_str = explode( "\r\n", $this->base64url_decode( sanitize_text_field( wp_unslash( $_POST['server'] ) ) ) );
 		if ( count( $server_str ) === 1 ) {
-			$server_str = substr($server_str[0], strpos($server_str[0], "?") + 1);
+			$server_str = substr( $server_str[0], strpos( $server_str[0], '?' ) + 1 );
 			foreach ( explode( '&', $server_str ) as $k => $v ) {
 				list( $key, $val ) = $this->value_pair( $v );
 				$server[ $key ]    = $val;
@@ -873,9 +873,9 @@ class SQRLLogin {
 		 * Value: hardlock = Client request all "out of band" changes to the account. Like security questions to
 		 *        retrieve the account when password is lost.
 		 */
-		$options = array();
+		$options                 = array();
 		$client_provided_session = false;
-		if( isset( $client['opt'] ) ) {
+		if ( isset( $client['opt'] ) ) {
 			foreach ( explode( '~', $client['opt'] ) as $v ) {
 				$options[ $v ] = true;
 			}
@@ -886,7 +886,7 @@ class SQRLLogin {
 		 * Fetch the current transient session where we keep all session information.
 		 */
 		$transient_session = false;
-		if( isset( $server['nut'] ) ) {
+		if ( isset( $server['nut'] ) ) {
 			$transient_session = get_transient( $server['nut'] );
 			delete_transient( $server['nut'] );
 		}
@@ -894,7 +894,7 @@ class SQRLLogin {
 		/**
 		 * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
 		 */
-		if ( $transient_session === false ) {
+		if ( false === $transient_session ) {
 			$this->sqrl_logging( 'Missing transient session' );
 			$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
 		}
@@ -921,6 +921,14 @@ class SQRLLogin {
 		$associated_existing_user = false;
 		$response                 = array();
 		$response[]               = 'ver=1';
+
+		if ( ! isset( $client['cmd'] ) ) {
+			/**
+			 * If command isn't supplied, Not implemented yet we should print the client request and die.
+			 */
+			$this->sqrl_logging( print_r( $client, true ) );
+			$this->exit_with_error_code( self::FUNCTION_NOT_SUPPORTED, $client_provided_session, $transient_session );
+		}
 
 		if ( 'query' === $client['cmd'] ) {
 			/**
