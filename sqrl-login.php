@@ -873,17 +873,20 @@ class SQRLLogin {
 		 *        retrieve the account when password is lost.
 		 */
 		$options = array();
-		foreach ( explode( '~', $client['opt'] ) as $v ) {
-			$options[ $v ] = true;
+		if( isset( $client['opt'] ) ) {
+			foreach ( explode( '~', $client['opt'] ) as $v ) {
+				$options[ $v ] = true;
+			}
+			$client_provided_session = strpos( $client['opt'], 'cps' ) !== false;
 		}
-
-		$client_provided_session = strpos( $client['opt'], 'cps' ) !== false;
 
 		/**
 		 * Fetch the current transient session where we keep all session information.
 		 */
-		$transient_session = get_transient( $server['nut'] );
-		delete_transient( $server['nut'] );
+		if( isset( $server['nut'] ) ) {
+			$transient_session = get_transient( $server['nut'] );
+			delete_transient( $server['nut'] );
+		}
 
 		/**
 		 * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
