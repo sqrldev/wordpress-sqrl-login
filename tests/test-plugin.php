@@ -274,15 +274,23 @@ class PluginTest extends WP_UnitTestCase {
       "throw" => true
     ));
 
-    set_transient("1234", array(
-      "ip" => $this->get_client_ip()
-    ), 60);
-
     $_POST["client"] = $this->base64url_encode("cmd=dsajki\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
     $_POST["ids"] = $this->base64url_encode($signature);
+
+
+    $_SERVER['REMOTE_ADDR'] = "1.1.1.1";
+    set_transient("1234", array("ip" => "1.1.1.1"), 60);
+    $sqrlLogin->api_callback();
+
+    $_SERVER['HTTP_X_FORWARDED_FOR'] = "2.2.2.2";
+    set_transient("1234", array("ip" => "2.2.2.2"), 60);
+    $sqrlLogin->api_callback();
+
+    $_SERVER['HTTP_CLIENT_IP'] = "3.3.3.3";
+    set_transient("1234", array("ip" => "3.3.3.3"), 60);
     $sqrlLogin->api_callback();
   }
 }
