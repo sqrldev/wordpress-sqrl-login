@@ -72,8 +72,31 @@ class PluginTest extends WP_UnitTestCase {
     $this->assertEquals( '<div id="login_error">The site is not allowing new registrations and your SQRL identity is not associated with any account.</div>', $message );
   }
 
+  function createMockForResult($expected) {
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) use ($expected) {
+        $strOutput = $this->base64url_decode( $strOutput );
+        $containsAnswer = strstr($strOutput, $expected["message"]) !== false;
+        $this->assertTrue($containsAnswer);
+        
+        if (isset($expected["throw"])) {
+          throw new InvalidArgumentException();
+        } 
+      }));
+    if (isset($expected["throw"])) {
+      $this->expectException(InvalidArgumentException::class);    
+    }
+  }
+
   function test_exit_with_error_code() {
 
+    createMockForResult(array(
+      "message" => "tif=0"
+    ));
+/*
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
       ->expects($this->once())
@@ -83,13 +106,18 @@ class PluginTest extends WP_UnitTestCase {
         $containsAnswer = strstr($strOutput, "tif=0") !== false;
         $this->assertTrue($containsAnswer);
       }));
-
+*/
     $sqrlLogin->exit_with_error_code( 0 );
   }
 
 
   function test_exit_with_error_code_with_cps() {
 
+    createMockForResult(array(
+      "message" => "url=https://example.org/wp-admin/admin-post.php?action=sqrl_logout&message=4"
+    ));
+
+/*
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
       ->expects($this->once())
@@ -99,7 +127,7 @@ class PluginTest extends WP_UnitTestCase {
         $containsAnswer = strstr($strOutput, "url=https://example.org/wp-admin/admin-post.php?action=sqrl_logout&message=4") !== false;
         $this->assertTrue($containsAnswer);
       }));
-
+*/
     $sqrlLogin->exit_with_error_code( 0, true );
   }
 
@@ -119,7 +147,11 @@ class PluginTest extends WP_UnitTestCase {
   }
 
   function test_api_callback_without_params() {
-
+    createMockForResult(array(
+      "message" => "tif=80",
+      "throw" => true
+    ));
+/*
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
       ->expects($this->once())
@@ -131,7 +163,7 @@ class PluginTest extends WP_UnitTestCase {
         throw new InvalidArgumentException();
       }));
     $this->expectException(InvalidArgumentException::class);
-
+*/
     $sqrlLogin->api_callback();
   }
 
@@ -293,7 +325,6 @@ class PluginTest extends WP_UnitTestCase {
     $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
   }
-
 
   function test_api_callback_without_command() {
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
