@@ -940,7 +940,7 @@ class SQRLLogin {
 				/**
 				 * If the client requests a Server Unlock Key then add that to the response.
 				 */
-				if ( $options['suk'] ) {
+				if ( isset( $options['suk'] ) ) {
 					$response[] = 'suk=' . $this->get_server_unlock_key( $client );
 				}
 			}
@@ -978,7 +978,7 @@ class SQRLLogin {
 				 * Check if we have a hit on a previous account so we need to update the current identity
 				 * to our new identity identifier.
 				 */
-				if ( ! $user && $this->account_present( $client['pidk'] ) ) {
+				if ( isset( $client['pidk'] ) && ! $user && $this->account_present( $client['pidk'] ) ) {
 					$user = $this->get_user_id( $client['pidk'] );
 				}
 
