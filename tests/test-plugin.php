@@ -311,7 +311,7 @@ class PluginTest extends WP_UnitTestCase {
     set_transient("1234", array(), 60);
 
     $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
-    $_POST["server"] = $this->base64url_encode("ver=1\n\rnut=1234");
+    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
     $_POST["ids"] = $this->base64url_encode($signature);
