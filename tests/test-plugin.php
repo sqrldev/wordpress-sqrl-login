@@ -93,7 +93,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_exit_with_error_code() {
 
-    createMockForResult(array(
+    $this->createMockForResult(array(
       "message" => "tif=0"
     ));
 /*
@@ -113,7 +113,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_exit_with_error_code_with_cps() {
 
-    createMockForResult(array(
+    $this->createMockForResult(array(
       "message" => "url=https://example.org/wp-admin/admin-post.php?action=sqrl_logout&message=4"
     ));
 
@@ -147,7 +147,7 @@ class PluginTest extends WP_UnitTestCase {
   }
 
   function test_api_callback_without_params() {
-    createMockForResult(array(
+    $this->createMockForResult(array(
       "message" => "tif=80",
       "throw" => true
     ));
