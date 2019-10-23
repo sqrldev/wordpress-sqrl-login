@@ -961,7 +961,10 @@ class SQRLLogin {
 				 * Fetch the current user from the transient session store and remove it as we only keep
 				 * it for the current session.
 				 */
-				$user = $transient_session['user'];
+				$user = false;
+				if ( isset( $transient_session['user'] ) ) {
+					$user = $transient_session['user'];
+				}
 
 				/*
 				 * We need to check if the user is in the transient session before we lookup the user from
