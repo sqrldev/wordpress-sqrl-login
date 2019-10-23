@@ -1020,6 +1020,10 @@ class SQRLLogin {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
 				 */
+				if ( !isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} elseif ( 'disable' === $client['cmd'] ) {
@@ -1055,6 +1059,10 @@ class SQRLLogin {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
 				 */
+				if ( !isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} elseif ( 'enable' === $client['cmd'] ) {
@@ -1102,6 +1110,10 @@ class SQRLLogin {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
 				 */
+				if ( !isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}				
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} elseif ( 'remove' === $client['cmd'] ) {
@@ -1142,6 +1154,10 @@ class SQRLLogin {
 					$response[] = 'url=' . $this->get_server_url_without_path() . $admin_post_path . '?action=sqrl_logout&message=' . self::MESSAGE_REMOVED;
 				}
 			} else {
+				if ( !isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} else {
