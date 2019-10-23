@@ -273,6 +273,28 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
+  function test_api_callback_without_transient_session() {
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = $this->base64url_decode( $strOutput );
+        $containsAnswer = strstr($strOutput, "tif=20") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+
+    $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = "1234";
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+    $sqrlLogin->api_callback();
+  }
+
+
   function test_api_callback_without_command() {
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
@@ -286,8 +308,10 @@ class PluginTest extends WP_UnitTestCase {
       }));
     $this->expectException(InvalidArgumentException::class);
 
+    set_transient("1234", array(), 60);
+
     $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
-    $_POST["server"] = "1234";
+    $_POST["server"] = $this->base64url_encode("nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
     $_POST["ids"] = $this->base64url_encode($signature);
