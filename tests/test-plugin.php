@@ -408,10 +408,9 @@ class PluginTest extends WP_UnitTestCase {
 
     $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
     preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
-    var_dump($matches);
 
     $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
-    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
+    $_POST["server"] = $matches[0][1];
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
     $_POST["ids"] = $this->base64url_encode($signature);
@@ -433,10 +432,9 @@ class PluginTest extends WP_UnitTestCase {
 
     $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
     preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
-    var_dump($matches);
 
     $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
-    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
+    $_POST["server"] = $matches[0][1];
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
     $_POST["ids"] = $this->base64url_encode($signature);
