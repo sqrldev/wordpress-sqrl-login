@@ -890,19 +890,26 @@ class SQRLLogin {
 			$transient_session = get_transient( $server['nut'] );
 			delete_transient( $server['nut'] );
 		}
-
-		/**
-		 * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
-		 */
 		if ( false === $transient_session ) {
 			$this->sqrl_logging( 'Missing transient session' );
 			$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
 		}
 
+		/**
+		 * Check if the users IP have changed since last time we logged in. Only required when CPS is used.
+		 */
 		if ( ! isset( $options['noiptest'] ) ) {
 			if ( ! empty( $transient_session['ip'] ) && $transient_session['ip'] === $this->get_client_ip() ) {
 				$ret_val += self::IP_MATCHED;
 			}
+		}
+
+		/**
+		 * Check that the server information sent back from the client haven't been tampered with.
+		 */
+		if ( ! isset( $transient_session['server_hash'] ) || $transient_session['server_hash'] !== hash( "sha256", $_POST['server'] ) ) {
+			$this->sqrl_logging( 'Incorrect server hash' );
+			$this->exit_with_error_code( self::CLIENT_FAILURE, $client_provided_session );
 		}
 
 		/**

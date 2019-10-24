@@ -318,5 +318,30 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
+
+  function test_api_callback_with_incorrect_server_hash() {
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) {
+        $strOutput = $this->base64url_decode( $strOutput );
+        $containsAnswer = strstr($strOutput, "tif=80") !== false;
+        $this->assertTrue($containsAnswer);
+        throw new InvalidArgumentException();
+      }));
+    $this->expectException(InvalidArgumentException::class);
+
+    set_transient("1234", array(
+      "server_hash" => "incorrect"
+    ), 60);
+
+    $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+    $sqrlLogin->api_callback();
+  }
 }
 
