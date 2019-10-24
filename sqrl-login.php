@@ -212,8 +212,8 @@ class SQRLLogin {
 		</html>
 		<?php
 
-		wp_enqueue_style( 'style', get_site_url() . '/wp-includes/css/buttons.min.css', SCRIPT_VERSION, true );
-		wp_enqueue_style( 'style', get_site_url() . '/wp-admin/css/login.min.css', SCRIPT_VERSION, true );
+		wp_enqueue_style( 'style', get_site_url() . '/wp-includes/css/buttons.min.css', self::SCRIPT_VERSION, true );
+		wp_enqueue_style( 'style', get_site_url() . '/wp-admin/css/login.min.css', self::SCRIPT_VERSION, true );
 	}
 
 	/**
@@ -522,9 +522,9 @@ class SQRLLogin {
 			);
 		}
 
-		wp_enqueue_script( 'pagesync', plugin_dir_url( __FILE__ ) . 'pagesync.js', array(), SCRIPT_VERSION, true );
-		wp_enqueue_script( 'qrcode', plugin_dir_url( __FILE__ ) . 'qrcode.min.js', array(), SCRIPT_VERSION, true );
-		wp_register_script( 'reload', plugin_dir_url( __FILE__ ) . 'reload.js', array(), SCRIPT_VERSION, true );
+		wp_enqueue_script( 'pagesync', plugin_dir_url( __FILE__ ) . 'pagesync.js', array(), self::SCRIPT_VERSION, true );
+		wp_enqueue_script( 'qrcode', plugin_dir_url( __FILE__ ) . 'qrcode.min.js', array(), self::SCRIPT_VERSION, true );
+		wp_register_script( 'reload', plugin_dir_url( __FILE__ ) . 'reload.js', array(), self::SCRIPT_VERSION, true );
 		wp_localize_script(
 			'reload',
 			'sqrlReload',
