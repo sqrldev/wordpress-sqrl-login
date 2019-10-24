@@ -848,7 +848,7 @@ class SQRLLogin {
 		 * Otherwise we handle the server string with properties that are line separated.
 		 */
 		$server_hash = sanitize_text_field( wp_unslash( $_POST['server'] ) );
-		$server_str = explode( "\r\n", $this->base64url_decode( $server_hash ) );
+		$server_str  = explode( "\r\n", $this->base64url_decode( $server_hash ) );
 		if ( count( $server_str ) === 1 ) {
 			$server_str = substr( $server_str[0], strpos( $server_str[0], '?' ) + 1 );
 			foreach ( explode( '&', $server_str ) as $k => $v ) {
@@ -908,7 +908,7 @@ class SQRLLogin {
 		/**
 		 * Check that the server information sent back from the client haven't been tampered with.
 		 */
-		if ( ! isset( $transient_session['server_hash'] ) || hash( "sha256", $server_hash ) !== $transient_session['server_hash'] ) {
+		if ( ! isset( $transient_session['server_hash'] ) || hash( 'sha256', $server_hash ) !== $transient_session['server_hash'] ) {
 			$this->sqrl_logging( 'Incorrect server hash' );
 			$this->exit_with_error_code( self::CLIENT_FAILURE, $client_provided_session );
 		}
