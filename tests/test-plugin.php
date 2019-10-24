@@ -406,7 +406,9 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->add_to_login_form();
     $response = ob_get_clean();
 
-    print_r($response);
+    $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
+    preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
+    var_dump($matches);
 
     $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
@@ -429,7 +431,9 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->add_to_login_form( $user );
     $response = ob_get_clean();
 
-    print_r($response);
+    $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
+    preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
+    var_dump($matches);
 
     $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
