@@ -500,10 +500,11 @@ class SQRLLogin {
 			set_transient(
 				$nut,
 				array(
-					'user'    => $user->id,
-					'ip'      => $this->get_client_ip(),
-					'redir'   => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
-					'session' => $session,
+					'user'        => $user->id,
+					'ip'          => $this->get_client_ip(),
+					'redir'       => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
+					'session'     => $session,
+					'server_hash' => hash( 'sha256', $this->base64url_encode( $sqrl_url ) ),
 				),
 				self::SESSION_TIMEOUT
 			);
@@ -515,6 +516,7 @@ class SQRLLogin {
 					'ip'      => $this->get_client_ip(),
 					'redir'   => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
 					'session' => $session,
+					'server_hash' => hash( 'sha256', $this->base64url_encode( $sqrl_url ) ),
 				),
 				self::SESSION_TIMEOUT
 			);
@@ -717,16 +719,6 @@ class SQRLLogin {
 
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
 
-		if ( $transient_session ) {
-			list( , $path_len_param ) = $this->get_domain_and_path_length();
-
-			$nut = $this->generate_random_string();
-			set_transient( $nut, $transient_session, self::SESSION_TIMEOUT );
-
-			$response[] = 'nut=' . $nut;
-			$response[] = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
-		}
-
 		if ( $client_provided_session ) {
 			$response[] = 'url=' . $this->get_server_url_without_path() . $admin_post_path . '?action=sqrl_logout&message=' . self::MESSAGE_ERROR;
 		}
@@ -734,6 +726,21 @@ class SQRLLogin {
 		$this->sqrl_logging( 'Failed response: ' . print_r( $response, true ) );
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
+
+		if ( $transient_session ) {
+			list( , $path_len_param ) = $this->get_domain_and_path_length();
+
+			$nut = $this->generate_random_string();
+
+			/*
+			 * Setting server_hash to ensure possibility of retries for failed connections.
+			 */
+			$transient_session['server_hash'] = hash( 'sha256', $content);
+			set_transient( $nut, $transient_session, self::SESSION_TIMEOUT );
+
+			$response[] = 'nut=' . $nut;
+			$response[] = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
+		}
 		$this->respond_with_message( $content );
 	}
 
@@ -1188,17 +1195,21 @@ class SQRLLogin {
 		$response[] = 'sin=0';
 
 		/*
-		 * Prepare the return values and set the transient session
-		 * where we keep all the session information.
+		 * Prepare the return values.
 		 */
 		$response[] = 'nut=' . $nut;
 		$response[] = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
+		$content    = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
+
+		/*
+		 * Set the transient session where we keep all the session information.
+		 */
+		$transient_session['server_hash'] = hash( 'sha256', $content );
 		set_transient( $nut, $transient_session, self::SESSION_TIMEOUT );
 
 		/**
 		 * Display the result as an base64url encoded string.
 		 */
-		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
 		$this->respond_with_message( $content );
 	}
 
