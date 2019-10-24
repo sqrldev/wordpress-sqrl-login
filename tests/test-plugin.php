@@ -378,17 +378,10 @@ class PluginTest extends WP_UnitTestCase {
 
 
   function test_api_callback_with_incorrect_server_hash() {
-    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
-    $sqrlLogin
-      ->expects($this->once())
-      ->method('respond_with_message')
-      ->will($this->returnCallback(function($strOutput) {
-        $strOutput = $this->base64url_decode( $strOutput );
-        $containsAnswer = strstr($strOutput, "tif=80") !== false;
-        $this->assertTrue($containsAnswer);
-        throw new InvalidArgumentException();
-      }));
-    $this->expectException(InvalidArgumentException::class);
+    $sqrlLogin = $this->createMockForResult(array(
+      "message" => "tif=80",
+      "throw" => true
+    ));
 
     set_transient("1234", array(
       "server_hash" => "incorrect"
@@ -401,4 +394,49 @@ class PluginTest extends WP_UnitTestCase {
     $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
   }
+
+
+  function test_api_callback_after_login_form_without_user() {
+    $sqrlLogin = $this->createMockForResult(array(
+      "message" => "tif=1",
+      "throw" => true
+    ));
+
+    ob_start();
+    add_to_login_form();
+    $response = ob_get_clean();
+
+    print_r($response);
+
+    $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+    $sqrlLogin->api_callback();
+  }
+
+  function test_api_callback_after_login_form_with_user() {
+    $sqrlLogin = $this->createMockForResult(array(
+      "message" => "tif=1",
+      "throw" => true
+    ));
+
+    $user = new stdClass();
+    $user->id = 1;
+
+    ob_start();
+    add_to_login_form( $user );
+    $response = ob_get_clean();
+
+    print_r($response);
+
+    $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+    $sqrlLogin->api_callback();
+  }
+
 }
