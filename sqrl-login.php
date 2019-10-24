@@ -431,13 +431,13 @@ class SQRLLogin {
 	 */
 	private function get_client_ip() {
 		$ip = '';
-		if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+		if ( isset( $_SERVER['HTTP_CLIENT_IP'] ) && ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
 			// check ip from share internet.
 			$ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_CLIENT_IP'] ) );
-		} elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+		} elseif ( isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) && ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
 			// to check ip is pass from proxy.
 			$ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
-		} elseif ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
+		} elseif ( isset( $_SERVER['REMOTE_ADDR'] ) && ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
 			$ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
 		}
 		return $ip;
@@ -947,7 +947,7 @@ class SQRLLogin {
 				/**
 				 * If the client requests a Server Unlock Key then add that to the response.
 				 */
-				if ( $options['suk'] ) {
+				if ( isset( $options['suk'] ) ) {
 					$response[] = 'suk=' . $this->get_server_unlock_key( $client );
 				}
 			}
@@ -968,7 +968,10 @@ class SQRLLogin {
 				 * Fetch the current user from the transient session store and remove it as we only keep
 				 * it for the current session.
 				 */
-				$user = $transient_session['user'];
+				$user = false;
+				if ( isset( $transient_session['user'] ) ) {
+					$user = $transient_session['user'];
+				}
 
 				/*
 				 * We need to check if the user is in the transient session before we lookup the user from
@@ -982,7 +985,7 @@ class SQRLLogin {
 				 * Check if we have a hit on a previous account so we need to update the current identity
 				 * to our new identity identifier.
 				 */
-				if ( ! $user && $this->account_present( $client['pidk'] ) ) {
+				if ( isset( $client['pidk'] ) && ! $user && $this->account_present( $client['pidk'] ) ) {
 					$user = $this->get_user_id( $client['pidk'] );
 				}
 
@@ -1024,6 +1027,10 @@ class SQRLLogin {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
 				 */
+				if ( ! isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} elseif ( 'disable' === $client['cmd'] ) {
@@ -1059,6 +1066,10 @@ class SQRLLogin {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
 				 */
+				if ( ! isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} elseif ( 'enable' === $client['cmd'] ) {
@@ -1106,6 +1117,10 @@ class SQRLLogin {
 				/**
 				 * Add session data signaling to the reload.js script that a login has been successfully transacted.
 				 */
+				if ( ! isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} elseif ( 'remove' === $client['cmd'] ) {
@@ -1146,6 +1161,10 @@ class SQRLLogin {
 					$response[] = 'url=' . $this->get_server_url_without_path() . $admin_post_path . '?action=sqrl_logout&message=' . self::MESSAGE_REMOVED;
 				}
 			} else {
+				if ( ! isset( $transient_session['session'] ) ) {
+					$this->sqrl_logging( 'Missing transient session' );
+					$this->exit_with_error_code( self::TRANSIENT_ERROR, $client_provided_session );
+				}
 				set_transient( $transient_session['session'], $transient_session, self::SESSION_TIMEOUT );
 			}
 		} else {
@@ -1334,6 +1353,11 @@ class SQRLLogin {
 	 * @param object $client    Current client parameter sent from the client.
 	 */
 	private function associate_user( $user, $client ) {
+		if ( ! isset( $client['idk'] ) || ! isset( $client['suk'] ) || ! isset( $client['vuk'] ) ) {
+			$this->sqrl_logging( 'Missing required parameter' );
+			$this->exit_with_error_code( self::CLIENT_FAILURE );
+		}
+
 		update_user_meta( $user, 'sqrl_idk', sanitize_text_field( $client['idk'] ) );
 		update_user_meta( $user, 'sqrl_suk', sanitize_text_field( $client['suk'] ) );
 		update_user_meta( $user, 'sqrl_vuk', sanitize_text_field( $client['vuk'] ) );
