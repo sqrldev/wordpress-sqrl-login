@@ -403,7 +403,7 @@ class PluginTest extends WP_UnitTestCase {
     ));
 
     ob_start();
-    add_to_login_form();
+    $sqrlLogin->add_to_login_form();
     $response = ob_get_clean();
 
     print_r($response);
@@ -426,7 +426,7 @@ class PluginTest extends WP_UnitTestCase {
     $user->id = 1;
 
     ob_start();
-    add_to_login_form( $user );
+    $sqrlLogin->add_to_login_form( $user );
     $response = ob_get_clean();
 
     print_r($response);
