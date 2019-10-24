@@ -242,11 +242,13 @@ class PluginTest extends WP_UnitTestCase {
       "throw" => true
     ));
 
-    set_transient("1234", array(), 60);
-
     $_POST["client"] = $this->base64url_encode("idk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] )
+    ), 60);
 
     $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
@@ -258,11 +260,13 @@ class PluginTest extends WP_UnitTestCase {
       "throw" => true
     ));
 
-    set_transient("1234", array(), 60);
-
     $_POST["client"] = $this->base64url_encode("cmd=dsajki\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] )
+    ), 60);
 
     $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
@@ -280,17 +284,25 @@ class PluginTest extends WP_UnitTestCase {
 
     $_POST["ids"] = $this->base64url_encode($signature);
 
-
     $_SERVER['REMOTE_ADDR'] = "1.1.1.1";
-    set_transient("1234", array("ip" => "1.1.1.1"), 60);
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+      "ip" => "1.1.1.1"
+    ), 60);
     $sqrlLogin->api_callback();
 
     $_SERVER['HTTP_X_FORWARDED_FOR'] = "2.2.2.2";
-    set_transient("1234", array("ip" => "2.2.2.2"), 60);
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+      "ip" => "2.2.2.2"
+    ), 60);
     $sqrlLogin->api_callback();
 
     $_SERVER['HTTP_CLIENT_IP'] = "3.3.3.3";
-    set_transient("1234", array("ip" => "3.3.3.3"), 60);
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+      "ip" => "3.3.3.3"
+    ), 60);
     $sqrlLogin->api_callback();
   }
 
@@ -300,16 +312,20 @@ class PluginTest extends WP_UnitTestCase {
       "throw" => true
     ));
 
-    set_transient("1234", array(), 60);
-
     $_POST["client"] = $this->base64url_encode("cmd=ident\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
     $_POST["ids"] = $this->base64url_encode($signature);
 
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+    ), 60);
+
     $sqrlLogin->api_callback();
 
-    set_transient("1234", array(), 60);
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+    ), 60);
     $_POST["client"] = $this->base64url_encode("cmd=query\r\nidk=" . $this->base64url_encode($this->idk_public));
     $sqrlLogin->api_callback();
   }
@@ -320,12 +336,16 @@ class PluginTest extends WP_UnitTestCase {
       "throw" => true
     ));
 
-    set_transient("1234", array("user" => 1, "session" => "dasasd"), 60);
-
     $_POST["client"] = $this->base64url_encode("cmd=ident\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
     $_POST["ids"] = $this->base64url_encode($signature);
+
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+      "user" => 1,
+      "session" => "dasasd"
+    ), 60);
 
     $sqrlLogin->api_callback();
   }
@@ -336,16 +356,22 @@ class PluginTest extends WP_UnitTestCase {
       "throw" => true
     ));
 
-    set_transient("1234", array("user" => 1, "session" => "dasasd"), 60);
-
     $_POST["client"] = $this->base64url_encode("cmd=ident\r\nsuk=dasasd\r\nvuk=dasasd\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $this->base64url_encode("https://example.org/wp-admin/admin-post.php?nut=1234");
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
     $_POST["ids"] = $this->base64url_encode($signature);
 
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+      "user" => 1,
+      "session" => "dasasd"
+    ), 60);
+
     $sqrlLogin->api_callback();
 
-    set_transient("1234", array(), 60);
+    set_transient("1234", array(
+      "server_hash" => hash( "sha256", $_POST["server"] ),
+    ), 60);
     $_POST["client"] = $this->base64url_encode("cmd=query\r\nidk=" . $this->base64url_encode($this->idk_public));
     $sqrlLogin->api_callback();
   }
