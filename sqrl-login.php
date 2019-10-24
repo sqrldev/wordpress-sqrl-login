@@ -512,10 +512,10 @@ class SQRLLogin {
 			set_transient(
 				$nut,
 				array(
-					'user'    => false,
-					'ip'      => $this->get_client_ip(),
-					'redir'   => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
-					'session' => $session,
+					'user'        => false,
+					'ip'          => $this->get_client_ip(),
+					'redir'       => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
+					'session'     => $session,
 					'server_hash' => hash( 'sha256', $this->base64url_encode( $sqrl_url ) ),
 				),
 				self::SESSION_TIMEOUT
@@ -717,7 +717,18 @@ class SQRLLogin {
 		$response[] = 'tif=' . dechex( $ret_val );
 		$response[] = 'sin=0';
 
+		$nut = $this->generate_random_string();
+
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
+
+		if ( $transient_session ) {
+			/*
+			 * If we have a session we will prepare some extra return values to enable retries.
+			 */
+			list( , $path_len_param ) = $this->get_domain_and_path_length();
+			$response[] = 'nut=' . $nut;
+			$response[] = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
+		}
 
 		if ( $client_provided_session ) {
 			$response[] = 'url=' . $this->get_server_url_without_path() . $admin_post_path . '?action=sqrl_logout&message=' . self::MESSAGE_ERROR;
@@ -727,19 +738,13 @@ class SQRLLogin {
 
 		$content = $this->base64url_encode( implode( "\r\n", $response ) . "\r\n" );
 
+
 		if ( $transient_session ) {
-			list( , $path_len_param ) = $this->get_domain_and_path_length();
-
-			$nut = $this->generate_random_string();
-
 			/*
 			 * Setting server_hash to ensure possibility of retries for failed connections.
 			 */
-			$transient_session['server_hash'] = hash( 'sha256', $content);
+			$transient_session['server_hash'] = hash( 'sha256', $content );
 			set_transient( $nut, $transient_session, self::SESSION_TIMEOUT );
-
-			$response[] = 'nut=' . $nut;
-			$response[] = 'qry=' . $admin_post_path . '?action=sqrl_auth&nut=' . $nut . $path_len_param;
 		}
 		$this->respond_with_message( $content );
 	}
