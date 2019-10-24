@@ -647,7 +647,7 @@ class SQRLLogin {
 
 		if ( self::COMMAND_REMOVE === $session['cmd'] ) {
 			if ( ! empty( $_GET['existingUser'] ) ) {
-				header( 'Location: ' . admin_url( 'profile.php' ), true );
+				wp_safe_redirect( admin_url( 'profile.php' ) );
 			} else {
 				$this->logout_with_message( self::MESSAGE_REMOVED );
 			}
@@ -677,11 +677,11 @@ class SQRLLogin {
 		if ( $disabled ) {
 			$this->logout_with_message( self::MESSAGE_DISABLED );
 		} elseif ( ! empty( $session['redir'] ) ) {
-			header( 'Location: ' . $session['redir'], true );
+			wp_safe_redirect( $session['redir'] );
 		} elseif ( ! empty( $_GET['existingUser'] ) ) {
-			header( 'Location: ' . admin_url( 'profile.php' ), true );
+			wp_safe_redirect( admin_url( 'profile.php' ) );
 		} else {
-			header( 'Location: ' . esc_url( get_option( 'sqrl_redirect_url' ) ), true );
+			wp_safe_redirect( esc_url( get_option( 'sqrl_redirect_url' ) ) );
 		}
 	}
 
