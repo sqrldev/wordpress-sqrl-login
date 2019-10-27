@@ -414,16 +414,11 @@ class PluginTest extends WP_UnitTestCase {
       ->will($this->returnCallback(function($strOutput) use ($expected) {
         $strOutput = $this->base64url_decode( $strOutput );
         $expected["response"] = $strOutput;
-        $containsAnswer = strstr($strOutput, $expected["message"]) !== false;
         $this->assertTrue($containsAnswer);
 
-        if (isset($expected["throw"])) {
-          throw new InvalidArgumentException();
-        }
+        throw new InvalidArgumentException();
       }));
-    if (isset($expected["throw"])) {
-      $this->expectException(InvalidArgumentException::class);
-    }
+    $this->expectException(InvalidArgumentException::class);
 
     return [$sqrlLogin, $expected];
   }
