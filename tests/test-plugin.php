@@ -79,6 +79,11 @@ class PluginTest extends WP_UnitTestCase {
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) use ($expected) {
         $strOutput = $this->base64url_decode( $strOutput );
+
+        if (isset($expected["debug"])) {
+          var_dump($strOutput);
+        }
+
         $containsAnswer = strstr($strOutput, $expected["message"]) !== false;
         $this->assertTrue($containsAnswer);
 
@@ -398,6 +403,7 @@ class PluginTest extends WP_UnitTestCase {
   function test_api_callback_after_login_form_without_user() {
     $sqrlLogin = $this->createMockForResult(array(
       "message" => "tif=1\r\n",
+      "debug" => true,
       "throw" => true
     ));
 
@@ -419,6 +425,7 @@ class PluginTest extends WP_UnitTestCase {
   function test_api_callback_after_login_form_with_user() {
     $sqrlLogin = $this->createMockForResult(array(
       "message" => "tif=1\r\n",
+      "debug" => true,
       "throw" => true
     ));
 
