@@ -402,10 +402,12 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_after_login_form_without_user() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=1\r\n",
+      "message" => "tif=5\r\n",
       "debug" => true,
       "throw" => true
     ));
+
+    update_option('users_can_register', true);
 
     ob_start();
     $sqrlLogin->add_to_login_form();
@@ -424,8 +426,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_after_login_form_with_user() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=1\r\n",
-      "debug" => true,
+      "message" => "tif=5\r\n",
       "throw" => true
     ));
 
