@@ -402,12 +402,31 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
+
+  function createMockGetResult() {
+    $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
+    $sqrlLogin
+      ->expects($this->once())
+      ->method('respond_with_message')
+      ->will($this->returnCallback(function($strOutput) use ($expected) {
+        $strOutput = $this->base64url_decode( $strOutput );
+        $expected["response"] = $strOutput;
+        $containsAnswer = strstr($strOutput, $expected["message"]) !== false;
+        $this->assertTrue($containsAnswer);
+
+        if (isset($expected["throw"])) {
+          throw new InvalidArgumentException();
+        }
+      }));
+    if (isset($expected["throw"])) {
+      $this->expectException(InvalidArgumentException::class);
+    }
+
+    return [$sqrlLogin, $expected];
+  }
+
   function test_api_callback_after_login_form_without_user() {
-    $expected = array(
-      "message" => "tif=4\r\n",
-      "throw" => true
-    );
-    $sqrlLogin = $this->createMockForResult($expected);
+    list($sqrlLogin, $expected) = $this->createMockGetResult();
 
     update_option('users_can_register', true);
 
