@@ -84,6 +84,8 @@ class PluginTest extends WP_UnitTestCase {
           var_dump($strOutput);
         }
 
+        $expected["response"] = $strOutput;
+
         $containsAnswer = strstr($strOutput, $expected["message"]) !== false;
         $this->assertTrue($containsAnswer);
 
@@ -401,11 +403,11 @@ class PluginTest extends WP_UnitTestCase {
   }
 
   function test_api_callback_after_login_form_without_user() {
-    $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=5\r\n",
-      "debug" => true,
+    $expected = array(
+      "message" => "tif=4\r\n",
       "throw" => true
-    ));
+    );
+    $sqrlLogin = $this->createMockForResult($expected);
 
     update_option('users_can_register', true);
 
@@ -422,6 +424,8 @@ class PluginTest extends WP_UnitTestCase {
 
     $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
+
+    var_dump($expected);
   }
 
   function test_api_callback_after_login_form_with_user() {
