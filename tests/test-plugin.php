@@ -408,7 +408,7 @@ class PluginTest extends WP_UnitTestCase {
     $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
     preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
 
-    $_POST["client"] = $this->base64url_encode("cmd=ident\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["client"] = $this->base64url_encode("cmd=ident\r\nsuk=dasasd\r\nvuk=dasasd\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $matches[0][1];
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
@@ -432,7 +432,7 @@ class PluginTest extends WP_UnitTestCase {
     $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
     preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
 
-    $_POST["client"] = $this->base64url_encode("cmd=ident\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["client"] = $this->base64url_encode("cmd=ident\r\nsuk=dasasd\r\nvuk=dasasd\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $matches[0][1];
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
