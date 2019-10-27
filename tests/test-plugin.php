@@ -96,7 +96,7 @@ class PluginTest extends WP_UnitTestCase {
   function test_exit_with_error_code() {
 
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=0"
+      "message" => "tif=0\r\n"
     ));
 
     $sqrlLogin->exit_with_error_code( 0 );
@@ -123,7 +123,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_without_params() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=80",
+      "message" => "tif=80\r\n",
       "throw" => true
     ));
 
@@ -133,7 +133,7 @@ class PluginTest extends WP_UnitTestCase {
   function test_api_callback_with_incorrect_client() {
 
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=20",
+      "message" => "tif=20\r\n",
       "throw" => true
     ));
 
@@ -145,7 +145,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_incorrect_server() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=20",
+      "message" => "tif=20\r\n",
       "throw" => true
     ));
 
@@ -157,7 +157,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_incorrect_ids() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=20",
+      "message" => "tif=20\r\n",
       "throw" => true
     ));
 
@@ -169,7 +169,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_incorrect_pids() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=20",
+      "message" => "tif=20\r\n",
       "throw" => true
     ));
 
@@ -182,7 +182,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_incorrect_urs() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=20",
+      "message" => "tif=20\r\n",
       "throw" => true
     ));
 
@@ -195,7 +195,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_faulty_key() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=80",
+      "message" => "tif=80\r\n",
       "throw" => true
     ));
 
@@ -207,7 +207,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_faulty_idk_signature() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=80",
+      "message" => "tif=80\r\n",
       "throw" => true
     ));
 
@@ -223,7 +223,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_without_transient_session() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=20",
+      "message" => "tif=20\r\n",
       "throw" => true
     ));
 
@@ -238,7 +238,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_without_command() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=10",
+      "message" => "tif=10\r\n",
       "throw" => true
     ));
 
@@ -256,7 +256,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_invalid_command() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=10",
+      "message" => "tif=10\r\n",
       "throw" => true
     ));
 
@@ -274,7 +274,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_check_for_ip_match() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=4",
+      "message" => "tif=4\r\n",
       "throw" => true
     ));
 
@@ -308,7 +308,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_missing_session_variable() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=20",
+      "message" => "tif=20\r\n",
       "throw" => true
     ));
 
@@ -332,7 +332,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_missing_suk_or_vuk() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=80",
+      "message" => "tif=80\r\n",
       "throw" => true
     ));
 
@@ -352,7 +352,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_create_new_association() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=1",
+      "message" => "tif=1\r\n",
       "throw" => true
     ));
 
@@ -379,7 +379,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_with_incorrect_server_hash() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=80",
+      "message" => "tif=80\r\n",
       "throw" => true
     ));
 
@@ -395,10 +395,9 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
   }
 
-
   function test_api_callback_after_login_form_without_user() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=1",
+      "message" => "tif=1\r\n",
       "throw" => true
     ));
 
@@ -419,7 +418,7 @@ class PluginTest extends WP_UnitTestCase {
 
   function test_api_callback_after_login_form_with_user() {
     $sqrlLogin = $this->createMockForResult(array(
-      "message" => "tif=1",
+      "message" => "tif=1\r\n",
       "throw" => true
     ));
 
@@ -440,5 +439,4 @@ class PluginTest extends WP_UnitTestCase {
     $_POST["ids"] = $this->base64url_encode($signature);
     $sqrlLogin->api_callback();
   }
-
 }
