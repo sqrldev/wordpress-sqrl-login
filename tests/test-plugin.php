@@ -404,6 +404,9 @@ class PluginTest extends WP_UnitTestCase {
 
 
   function createMockGetResult() {
+
+    $expected = [];
+
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
       ->expects($this->once())
