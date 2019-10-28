@@ -418,9 +418,7 @@ class PluginTest extends WP_UnitTestCase {
   function runAndReturn($func) {
     ob_start();
     $func();
-    $response = ob_get_clean();
-
-    $strOutput = $this->base64url_decode( $strOutput );
+    $strOutput = $this->base64url_decode( ob_get_clean() );
 
     $response = [];
     $array = explode("\r\n", $strOutput);
