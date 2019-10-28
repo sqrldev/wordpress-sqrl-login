@@ -403,27 +403,34 @@ class PluginTest extends WP_UnitTestCase {
   }
 
 
-  function createMockGetResult() {
-
-    $expected = [];
-
+  function createMockJustPrint() {
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
       ->expects($this->once())
       ->method('respond_with_message')
-      ->will($this->returnCallback(function($strOutput) use ($expected) {
-        $strOutput = $this->base64url_decode( $strOutput );
-        $expected["response"] = $strOutput;
-        
-        throw new InvalidArgumentException();
+      ->will($this->returnCallback(function($strOutput) {
+        echo $strOutput;
       }));
-    $this->expectException(InvalidArgumentException::class);
+  }
 
-    return [$sqrlLogin, $expected];
+  function runAndReturn($func) {
+    ob_start();
+    $func();
+    $response = ob_get_clean();
+
+    $strOutput = $this->base64url_decode( $strOutput );
+
+    $response = [];
+    $array = explode("\r\n", $strOutput);
+    foreach ($array as $str) {
+      $pair = explode("=");
+      $response[$pair[0]] = $pair[1];
+    }
+    return $response;
   }
 
   function test_api_callback_after_login_form_without_user() {
-    list($sqrlLogin, $expected) = $this->createMockGetResult();
+    $this->createMockJustPrint();
 
     update_option('users_can_register', true);
 
@@ -439,9 +446,15 @@ class PluginTest extends WP_UnitTestCase {
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
 
     $_POST["ids"] = $this->base64url_encode($signature);
-    $sqrlLogin->api_callback();
 
-    var_dump($expected);
+    $response = runAndReturn(function() {
+      $sqrlLogin->api_callback();
+    });
+    var_dump($response);
+
+    $session = get_transient($response["nut"]);
+
+    $this->assertEquals( 5, $session['cmd'] );
   }
 
   function test_api_callback_after_login_form_with_user() {
