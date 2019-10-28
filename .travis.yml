@@ -35,4 +35,4 @@ script:
   - phpcs --standard=rulesset.xml ./sqrl-login.php
   - php -i | grep "sodium"
   - phpunit
-  - php coverage-checker.php clover.xml 30
+  - php coverage-checker.php clover.xml 50
