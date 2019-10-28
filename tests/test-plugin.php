@@ -75,7 +75,6 @@ class PluginTest extends WP_UnitTestCase {
   function createMockForResult($expected) {
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
-      ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) use ($expected) {
         $strOutput = $this->base64url_decode( $strOutput );
@@ -406,7 +405,6 @@ class PluginTest extends WP_UnitTestCase {
   function createMockJustPrint() {
     $sqrlLogin = $this->getMockBuilder( SQRLLogin::class )->setMethods( [ 'respond_with_message' ] )->getMock();
     $sqrlLogin
-      ->expects($this->once())
       ->method('respond_with_message')
       ->will($this->returnCallback(function($strOutput) {
         echo $strOutput;
