@@ -424,6 +424,7 @@ class PluginTest extends WP_UnitTestCase {
     $array = explode("\r\n", $strOutput);
     foreach ($array as $str) {
       $pair = explode("=", $str);
+      if(count($pair) < 2) continue;      
       $response[$pair[0]] = $pair[1];
     }
     return $response;
