@@ -411,6 +411,8 @@ class PluginTest extends WP_UnitTestCase {
       ->will($this->returnCallback(function($strOutput) {
         echo $strOutput;
       }));
+
+    return $sqrlLogin;
   }
 
   function runAndReturn($func) {
@@ -430,7 +432,7 @@ class PluginTest extends WP_UnitTestCase {
   }
 
   function test_api_callback_after_login_form_without_user() {
-    $this->createMockJustPrint();
+    $sqrlLogin = $this->createMockJustPrint();
 
     update_option('users_can_register', true);
 
