@@ -518,8 +518,6 @@ class PluginTest extends WP_UnitTestCase {
       $sqrlLogin->api_callback();
     });
 
-    var_dump($response);
-
-    $this->assertEquals( 'D', $response['tif'] );
+    $this->assertEquals( 'd', $response['tif'] );
   }
 }
