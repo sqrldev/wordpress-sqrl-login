@@ -449,7 +449,7 @@ class PluginTest extends WP_UnitTestCase {
 
     $_POST["ids"] = $this->base64url_encode($signature);
 
-    $response = $this->runAndReturn(function() {
+    $response = $this->runAndReturn(function() use ($sqrlLogin) {
       $sqrlLogin->api_callback();
     });
     var_dump($response);
