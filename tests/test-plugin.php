@@ -423,7 +423,7 @@ class PluginTest extends WP_UnitTestCase {
     $response = [];
     $array = explode("\r\n", $strOutput);
     foreach ($array as $str) {
-      $pair = explode("=");
+      $pair = explode("=", $str);
       $response[$pair[0]] = $pair[1];
     }
     return $response;
