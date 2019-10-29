@@ -459,6 +459,33 @@ class PluginTest extends WP_UnitTestCase {
     $this->assertEquals( 5, $session['cmd'] );
   }
 
+  function test_api_callback_registration_not_allowed() {
+    $sqrlLogin = $this->createMockJustPrint();
+
+    update_option('users_can_register', false);
+
+    ob_start();
+    $sqrlLogin->add_to_login_form();
+    $response = ob_get_clean();
+
+    $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
+    preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
+
+    $_POST["client"] = $this->base64url_encode("cmd=ident\r\nsuk=dasasd\r\nvuk=dasasd\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $matches[0][1];
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+
+    $response = $this->runAndReturn(function() use ($sqrlLogin) {
+      $sqrlLogin->api_callback();
+    });
+
+    $session = get_transient($response["nut"]);
+
+    $this->assertEquals( SQRLLogin::MESSAGE_REGISTRATION_NOT_ALLOWED, $session['err'] );
+  }  
+
   function test_api_callback_after_login_form_with_user() {
     $sqrlLogin = $this->createMockJustPrint();
 
@@ -482,7 +509,7 @@ class PluginTest extends WP_UnitTestCase {
       $sqrlLogin->api_callback();
     });
 
-    $this->assertEquals( 5, $response['tif'] );
+    $this->assertEquals( SQRLLogin::COMMAND_REGISTER, $response['tif'] );
   }
 
   function test_api_callback_login_and_disable() {
