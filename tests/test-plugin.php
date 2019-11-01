@@ -20,7 +20,7 @@ class PluginTest extends WP_UnitTestCase {
     $this->rescueIdentityUnlockKey = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
     $randomLock = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
 
-    $this->identityLockKey = sodium_crypto_scalarmult_base($rescueIdentityUnlockKey);
+    $this->identityLockKey = sodium_crypto_scalarmult_base($this->rescueIdentityUnlockKey);
     $this->serverUnlock = sodium_crypto_scalarmult_base($randomLock);
     $bytesToSign = sodium_crypto_scalarmult($randomLock, $this->identityLockKey);
     $vuk_pair = sodium_crypto_sign_seed_keypair($bytesToSign);
