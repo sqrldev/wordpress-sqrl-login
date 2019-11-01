@@ -31,6 +31,7 @@ install:
 before_script:
   - git clone https://github.com/kalaspuffar/wordpress-test-template wp-tests
   - bash wp-tests/bin/install-wp-tests.sh test root '' localhost $WP_VERSION
+  - pecl install xdebug
 script:
   - phpcs --standard=rulesset.xml ./sqrl-login.php
   - php -i | grep "sodium"
