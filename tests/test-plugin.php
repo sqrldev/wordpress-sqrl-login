@@ -424,7 +424,7 @@ class PluginTest extends WP_UnitTestCase {
   function runAndReturn($func) {
     ob_start();
     $func();
-    return parseString(ob_get_clean());
+    return $this->parseString(ob_get_clean());
   }
 
   function parseString($strOutput) {
@@ -636,7 +636,7 @@ class PluginTest extends WP_UnitTestCase {
     ob_start();
     $sqrlLogin->api_callback();
     $response = ob_get_clean();
-    $parsedResponse = parseString($response);
+    $parsedResponse = $this->parseString($response);
 
     $this->assertEquals( 'd', $parsedResponse['tif'] );
 
