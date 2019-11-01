@@ -424,20 +424,18 @@ class PluginTest extends WP_UnitTestCase {
   function runAndReturn($func) {
     ob_start();
     $func();
-    $strOutput = $this->base64url_decode( ob_get_clean() );
+    return parseString(ob_get_clean());
+  }
 
+  function parseString($strOutput) {
     $response = [];
-    $array = explode("\r\n", $strOutput);
+    $array = explode("\r\n", $this->base64url_decode($strOutput));
     foreach ($array as $str) {
       $eq_pos = strpos( $str, '=' );
       if ($eq_pos === false) continue;
       $response[substr( $str, 0, $eq_pos )] = substr( $str, $eq_pos + 1 );
     }
     return $response;
-  }
-
-  function parseString($strOutput) {
-
   }
 
   function test_api_callback_after_login_form_without_user() {
@@ -583,7 +581,9 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin->api_callback();
     $response = ob_get_clean();
 
-    var_dump($this->base64url_decode($response));
+    $parsedResponse = $this->parseString($response);
+
+    $this->assertEquals( '5', $parsedResponse['tif'] );
 
     $_POST["client"] = $this->base64url_encode("cmd=remove\r\nidk=" . $this->base64url_encode($this->idk_public));
     $_POST["server"] = $response;
@@ -597,11 +597,65 @@ class PluginTest extends WP_UnitTestCase {
     $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $unlock_secret);
     $_POST["urs"] = $this->base64url_encode($signature);
 
-    $response = $this->runAndReturn(function() use ($sqrlLogin) {
+    $parsedResponse = $this->runAndReturn(function() use ($sqrlLogin) {
       $sqrlLogin->api_callback();
     });
 
-    $this->assertEquals( '4', $response['tif'] );
+    $this->assertEquals( '4', $parsedResponse['tif'] );
   }
 
+  function test_api_callback_login_disable_and_enable() {
+    $sqrlLogin = $this->createMockJustPrint();
+
+    $user = new stdClass();
+    $user->id = 1;
+
+    ob_start();
+    $sqrlLogin->add_to_login_form( $user );
+    $response = ob_get_clean();
+
+    $re = '/encoded-sqrl-url="([A-Za-z0-9_-]+)"/m';
+    preg_match_all($re, $response, $matches, PREG_SET_ORDER, 0);
+
+    $_POST["client"] = $this->base64url_encode("cmd=ident\r\nsuk=dasasd\r\nvuk=dasasd\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $matches[0][1];
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+
+    ob_start();
+    $sqrlLogin->api_callback();
+    $response = ob_get_clean();
+
+    $_POST["client"] = $this->base64url_encode("cmd=disable\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $response;
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+
+    $_POST["ids"] = $this->base64url_encode($signature);
+
+    ob_start();
+    $sqrlLogin->api_callback();
+    $response = ob_get_clean();
+    $parsedResponse = parseString($response);
+
+    $this->assertEquals( 'd', $parsedResponse['tif'] );
+
+    $_POST["client"] = $this->base64url_encode("cmd=enable\r\nidk=" . $this->base64url_encode($this->idk_public));
+    $_POST["server"] = $response;
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $this->idk_secret);
+    $_POST["ids"] = $this->base64url_encode($signature);
+
+    $bytesToSign = sodium_crypto_scalarmult($this->rescueIdentityUnlockKey, $this->serverUnlock);
+    $unlock_pair = sodium_crypto_sign_seed_keypair($bytesToSign);
+    $unlock_secret = sodium_crypto_sign_secretkey($unlock_pair);
+
+    $signature = sodium_crypto_sign_detached($_POST["client"] . $_POST["server"], $unlock_secret);
+    $_POST["urs"] = $this->base64url_encode($signature);
+
+    $parsedResponse = $this->runAndReturn(function() use ($sqrlLogin) {
+      $sqrlLogin->api_callback();
+    });
+
+    $this->assertEquals( '5', $parsedResponse['tif'] );
+  }
 }
