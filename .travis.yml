@@ -21,6 +21,9 @@ env:
   - WP_PROJECT_TYPE=plugin WP_VERSION=latest WP_MULTISITE=0 WP_TEST_URL=http://localhost:12000 WP_TEST_USER=test WP_TEST_USER_PASS=test
 
 matrix:
+  include:
+    - php: 7.3
+      env: COVERAGE=true
   allow_failures:
     - php: nightly
 
@@ -31,8 +34,14 @@ install:
 before_script:
   - git clone https://github.com/kalaspuffar/wordpress-test-template wp-tests
   - bash wp-tests/bin/install-wp-tests.sh test root '' localhost $WP_VERSION
+    # disable xdebug if not coverage
+  - if [[ $COVERAGE == "" ]]; then phpenv config-rm xdebug.ini; fi
+
 script:
   - phpcs --standard=rulesset.xml ./sqrl-login.php
   - php -i | grep "sodium"
   - phpunit
-  - php coverage-checker.php clover.xml 50
+  - |
+    if [[ $COVERAGE == true ]]; then
+      php coverage-checker.php clover.xml 50
+    fi
