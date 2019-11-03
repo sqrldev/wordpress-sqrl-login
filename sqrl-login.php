@@ -9,7 +9,7 @@
  * @author     Daniel Persson
  * @license    https://opensource.org/licenses/MIT MIT
  * @link       http://danielpersson.dev
- * @version    1.2.1
+ * @version    2.0.0
  */
 
 /**
@@ -18,7 +18,7 @@
  * @wordpress-plugin
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           1.2.1
+ * Version:           2.0.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl

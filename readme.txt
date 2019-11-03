@@ -3,7 +3,7 @@ Contributors: kalaspuffar
 Tags: sqrl, login
 Donate link: http://ko-fi.com/danielpersson
 Requires at least: 5.2.2
-Tested up to: 5.2.2
+Tested up to: 5.3
 Requires PHP: 7.2
 Stable tag: trunk
 License: MIT
@@ -41,6 +41,10 @@ Special thanks to:
 3. Profile screen with SQRL identity is associated
 
 == Changelog ==
+
+Version 2.0.0
+
+* Multiple changes when introducing a test suite testing all vital paths.
 
 Version 1.2.0
 
