@@ -1010,7 +1010,7 @@ class SQRLLogin {
 				}
 
 				/*
-				 * Check if we should associate an old user or create a new one. Checking if registring users
+				 * Check if we should associate an old user or create a new one. Checking if registering users
 				 * are allowed on the current installation.
 				 */
 				if ( $user ) {
