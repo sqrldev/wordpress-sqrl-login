@@ -220,10 +220,11 @@ class SQRLLogin {
 	 * This function will ensure to keep the nut even if we need to retry
 	 * on the registration page if we select a email or username that is in used for instance.
 	 *
-	 * @param object $url       The complete URL we want to change in order to keep nut.
-	 * @param object $path      Path relative to the site URL.
-	 * @param object $scheme    Scheme to give the site URL context. Accepts 'http', 'https', 'login', 'login_post', 'admin', or 'relative'.
-	 * @param object $blog_id   Site ID. Default null (current site).
+	 * @param string      $url       The complete URL we want to change in order to keep nut.
+	 * @param string      $path      Path relative to the site URL.
+	 * @param string|null $scheme    Scheme to give the site URL context. Accepts 'http', 'https', 'login', 'login_post', 'admin', or 'relative'.
+	 * @param int|null    $blog_id   Site ID. Default null (current site).
+	 * @return string
 	 */
 	public function keep_registration_nut( $url, $path, $scheme, $blog_id ) {
 		if ( 'login_post' === $scheme ) {
@@ -257,9 +258,11 @@ class SQRLLogin {
 	 * The last function in the chain to register a user and saving the identity
 	 * association on the user.
 	 *
-	 * @param object $user       User object to associate identity with.
+	 * @see https://developer.wordpress.org/reference/hooks/user_register/
+	 *
+	 * @param int $user_id       User ID to associate identity with.
 	 */
-	public function registration_save( $user ) {
+	public function registration_save( $user_id ) {
 		if ( empty( $_POST['nut'] ) ) {
 			return;
 		}
@@ -272,9 +275,9 @@ class SQRLLogin {
 		$session = get_transient( $nut );
 		delete_transient( $nut );
 
-		$this->associate_user( $user, $session['client'] );
+		$this->associate_user( $user_id, $session['client'] );
 
-		$session['user'] = $user;
+		$session['user'] = $user_id;
 		$session['cmd']  = self::COMMAND_LOGIN;
 
 		$nut = $this->generate_random_string();
@@ -709,9 +712,9 @@ class SQRLLogin {
 	/**
 	 * Return with information to the server about the error that occured.
 	 *
-	 * @param int    $ret_val                 State of the session to display for the end user of the client.
-	 * @param bool   $client_provided_session If true the session have CPS enabled and could be redirected.
-	 * @param object $transient_session       Current session with information about user, nut and command.
+	 * @param int          $ret_val                 State of the session to display for the end user of the client.
+	 * @param bool         $client_provided_session If true the session have CPS enabled and could be redirected.
+	 * @param object|false $transient_session       Current session with information about user, nut and command.
 	 */
 	public function exit_with_error_code( $ret_val, $client_provided_session = false, $transient_session = false ) {
 		$response   = array();
@@ -1226,7 +1229,7 @@ class SQRLLogin {
 	 * SQRLOnly = Don't allow login using username and password.
 	 * Hardlock = Don't allow the user to request a password reset.
 	 *
-	 * @param object $client    Current client parameter sent from the client.
+	 * @param array  $client    Current client parameter sent from the client.
 	 * @param object $options   Options sent from the client, the options handled here are preferences for login.
 	 */
 	private function update_options( $client, $options ) {
@@ -1370,18 +1373,18 @@ class SQRLLogin {
 	 * Verify Unlock Key (vuk) used to verify the unlock request signature sent from the client
 	 * when an disabled account should be enabled again.
 	 *
-	 * @param object $user      User to update login keys for.
+	 * @param int    $user_id   User ID to update login keys for.
 	 * @param object $client    Current client parameter sent from the client.
 	 */
-	private function associate_user( $user, $client ) {
+	private function associate_user( $user_id, $client ) {
 		if ( ! isset( $client['idk'] ) || ! isset( $client['suk'] ) || ! isset( $client['vuk'] ) ) {
 			$this->sqrl_logging( 'Missing required parameter' );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
 
-		update_user_meta( $user, 'sqrl_idk', sanitize_text_field( $client['idk'] ) );
-		update_user_meta( $user, 'sqrl_suk', sanitize_text_field( $client['suk'] ) );
-		update_user_meta( $user, 'sqrl_vuk', sanitize_text_field( $client['vuk'] ) );
+		update_user_meta( $user_id, 'sqrl_idk', sanitize_text_field( $client['idk'] ) );
+		update_user_meta( $user_id, 'sqrl_suk', sanitize_text_field( $client['suk'] ) );
+		update_user_meta( $user_id, 'sqrl_vuk', sanitize_text_field( $client['vuk'] ) );
 	}
 
 	/**
