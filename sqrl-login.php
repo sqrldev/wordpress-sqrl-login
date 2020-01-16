@@ -632,6 +632,8 @@ class SQRLLogin {
 			$this->only_allow_base64_url( $session_key );
 		}
 
+		$session_nut = null;
+
 		// Validate nut value.
 		// If the string is not Base64URL encoded, die here and don't process code below.
 		if ( isset( $_GET['nut'] ) ) {
@@ -673,7 +675,7 @@ class SQRLLogin {
 			wp_set_auth_cookie( $session['user'] );
 		}
 
-		$disabled = get_user_meta( $wp_users[0], 'sqrl_disable_user', true );
+		$disabled = get_user_meta( $session['user'], 'sqrl_disable_user', true );
 		if ( $disabled ) {
 			$this->logout_with_message( self::MESSAGE_DISABLED );
 		} elseif ( ! empty( $session['redir'] ) ) {
@@ -1275,6 +1277,8 @@ class SQRLLogin {
 		// Get user meta.
 		$disabled = get_user_meta( $user->ID, 'sqrl_disable_user', true );
 		$sqrlonly = get_user_meta( $user->ID, 'sqrl_sqrlonly', true );
+
+		$login_url = site_url( 'wp-login.php', 'login' );
 
 		if ( '1' === $disabled && '1' === $sqrlonly ) {
 			wp_clear_auth_cookie();
