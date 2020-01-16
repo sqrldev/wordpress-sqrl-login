@@ -550,7 +550,7 @@ class SQRLLogin {
 					encoded-sqrl-url="<?php echo $this->base64url_encode( $sqrl_url ); ?>"
 					tabindex="-1"
 				>
-					<img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ); ?>"/>
+					<img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ); ?>" alt=""/>
 					<div><?php echo $button_label; ?></div>
 				</a>
 			</div>
