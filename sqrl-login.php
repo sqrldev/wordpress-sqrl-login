@@ -817,6 +817,8 @@ class SQRLLogin {
 		 */
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
 
+		$result = false;
+
 		/**
 		 * Check the user call that we have a valid signature for the current authentication.
 		 */
@@ -866,6 +868,7 @@ class SQRLLogin {
 		 */
 		$server_hash = sanitize_text_field( wp_unslash( $_POST['server'] ) );
 		$server_str  = explode( "\r\n", $this->base64url_decode( $server_hash ) );
+		$server = array();
 		if ( count( $server_str ) === 1 ) {
 			$server_str = substr( $server_str[0], strpos( $server_str[0], '?' ) + 1 );
 			foreach ( explode( '&', $server_str ) as $k => $v ) {
@@ -873,7 +876,6 @@ class SQRLLogin {
 				$server[ $key ]    = $val;
 			}
 		} else {
-			$server = array();
 			foreach ( $server_str as $k => $v ) {
 				list( $key, $val ) = $this->value_pair( $v );
 				$server[ $key ]    = $val;
