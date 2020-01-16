@@ -354,7 +354,7 @@ class SQRLLogin {
 	 * Display screen in profile to associate or disassociate a SQRL login with a user
 	 * profile.
 	 *
-	 * @param object $user       User object of the associated user account.
+	 * @param WP_User $user       User object of the associated user account.
 	 */
 	public function associate_sqrl( $user ) {
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
@@ -366,14 +366,14 @@ class SQRLLogin {
 		?>
 		<h3><?php echo $sqrl_settings_title; ?></h3>
 		<?php
-		if ( get_user_meta( $user->id, 'sqrl_idk', true ) ) {
+		if ( get_user_meta( $user->ID, 'sqrl_idk', true ) ) {
 			?>
 			<table class="form-table">
 				<tr>
 					<th>
 					</th>
 					<td>
-						<?php if ( get_user_meta( $user->id, 'sqrl_hardlock', true ) ) { ?>
+						<?php if ( get_user_meta( $user->ID, 'sqrl_hardlock', true ) ) { ?>
 							<div class="sqrl-form" style="border-left: 3px solid #dc3232;">
 								<div class="sqrl-login-row"><?php echo $hardlock_disclaimer; ?></div>
 							</div>
@@ -469,10 +469,10 @@ class SQRLLogin {
 	 * Add the SQRL specific code. Used both from the profile screen and the login screen to
 	 * login users or associate them with a specific account.
 	 *
-	 * @param object $user       User object of the logged in user account.
-	 * @param bool   $associated True if the user is associated with a SQRL identity.
+	 * @param WP_User $user       User object of the logged in user account.
+	 * @param bool    $associated True if the user is associated with a SQRL identity.
 	 */
-	public function add_to_login_form( $user = false, $associated = false ) {
+	public function add_to_login_form( $user = null, $associated = false ) {
 		if ( get_option( 'users_can_register' ) ) {
 			$button_label = esc_html__( 'Sign in or Register with SQRL', 'sqrl' );
 			$qrcode_label = esc_html__( 'You may also sign in or register with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl' );
@@ -503,7 +503,7 @@ class SQRLLogin {
 			set_transient(
 				$nut,
 				array(
-					'user'        => $user->id,
+					'user'        => $user->ID,
 					'ip'          => $this->get_client_ip(),
 					'redir'       => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
 					'session'     => $session,
