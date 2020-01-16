@@ -1248,6 +1248,8 @@ class SQRLLogin {
 	 * Check if a user account is disabled.
 	 *
 	 * @param object $client   Current client parameter sent from the client.
+	 *
+	 * @return bool|mixed
 	 */
 	private function account_disabled( $client ) {
 		/*
@@ -1305,6 +1307,8 @@ class SQRLLogin {
 	 * Code inspired by https://github.com/jaredatch/Disable-Users
 	 *
 	 * @param string $message  Original message.
+	 *
+	 * @return string
 	 */
 	public function user_login_message( $message = '' ) {
 		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === (int) $_GET['message'] ) {
@@ -1415,6 +1419,8 @@ class SQRLLogin {
 	 * from the system.
 	 *
 	 * @param string $idk_val    Identity key value used to lookup user id.
+	 *
+	 * @return false|mixed
 	 */
 	private function get_user_id( $idk_val ) {
 		if ( empty( $idk_val ) ) {
@@ -1444,6 +1450,8 @@ class SQRLLogin {
 	 * from the system.
 	 *
 	 * @param object $client    Current client parameter sent from the client.
+	 *
+	 * @return false|mixed
 	 */
 	private function get_server_unlock_key( $client ) {
 		if ( empty( $client['idk'] ) ) {
@@ -1472,6 +1480,8 @@ class SQRLLogin {
 	 * operations like enabling and removing accounts.
 	 *
 	 * @param object $client   Current client parameter sent from the client.
+	 *
+	 * @return false|mixed
 	 */
 	private function get_verify_unlock_key( $client ) {
 		if ( empty( $client['idk'] ) ) {
@@ -1501,6 +1511,8 @@ class SQRLLogin {
 	 * in the system.
 	 *
 	 * @param string $idk_val    Identity key value used see if the account is associated with a user.
+	 *
+	 * @return bool
 	 */
 	private function account_present( $idk_val ) {
 		if ( empty( $idk_val ) ) {
@@ -1528,6 +1540,8 @@ class SQRLLogin {
 	 * when registering a new user.
 	 *
 	 * @param string $prefix    String appended before the random number of this anonymous user.
+	 *
+	 * @return string
 	 */
 	private function get_random_unique_username( $prefix = '' ) {
 		$user_exists = 1;
@@ -1550,6 +1564,8 @@ class SQRLLogin {
 	 * not allowed characters before doing a regular base64 decoding and removing any padding.
 	 *
 	 * @param string $data   Data to encode into base64 url.
+	 *
+	 * @return string
 	 */
 	private function base64url_encode( $data ) {
 		$data = str_replace( array( '+', '/' ), array( '-', '_' ), base64_encode( $data ) );
@@ -1567,6 +1583,8 @@ class SQRLLogin {
 	 * not allowed characters before doing a regular base64 decoding and removing any padding.
 	 *
 	 * @param string $data   Data to decode from base64 url.
+	 *
+	 * @return string
 	 */
 	private function base64url_decode( $data ) {
 		return base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $data ) );
@@ -1578,6 +1596,8 @@ class SQRLLogin {
 	 * it can have multiple equal characters present but will only split on the first one.
 	 *
 	 * @param string $str   String to split into a pair.
+	 *
+	 * @return array
 	 */
 	private function value_pair( $str ) {
 		$eq_pos = strpos( $str, '=' );
