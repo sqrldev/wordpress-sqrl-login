@@ -235,7 +235,7 @@ class SQRLLogin {
 	}
 
 	/**
-	 * Add the nut to the registation page in order to create a user
+	 * Add the nut to the registration page in order to create a user
 	 * that we later can associate with the identity saved under the current nut.
 	 */
 	public function add_registration_fields() {
@@ -255,7 +255,7 @@ class SQRLLogin {
 
 	/**
 	 * The last function in the chain to register a user and saving the identity
-	 * associtation on the user.
+	 * association on the user.
 	 *
 	 * @param object $user       User object to associate identity with.
 	 */
@@ -444,7 +444,7 @@ class SQRLLogin {
 	}
 
 	/**
-	 * Function to extract the domain and lenght of path from a site url.
+	 * Function to extract the domain and length of path from a site url.
 	 */
 	public function get_domain_and_path_length() {
 		$site_url    = explode( '://', get_site_url() );
@@ -834,7 +834,7 @@ class SQRLLogin {
 		}
 
 		/**
-		 * Check the user call that we have a valid pewvious if available signature for
+		 * Check the user call that we have a valid previous if available signature for
 		 * the current authentication.
 		 */
 		if ( ! empty( $client['pidk'] ) ) {
@@ -1312,7 +1312,7 @@ class SQRLLogin {
 			$message .= '<div id="login_error">' . esc_html__( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_ERROR === (int) $_GET['message'] ) {
-			$message .= '<div id="login_error">' . esc_html__( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'An error occurred with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_REGISTRATION_NOT_ALLOWED === (int) $_GET['message'] ) {
 			$message .= '<div id="login_error">' . esc_html__( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
@@ -1520,7 +1520,7 @@ class SQRLLogin {
 
 	/**
 	 * This function will create a random username. This will be used to create anonymous logins
-	 * when registring a new user.
+	 * when registering a new user.
 	 *
 	 * @param string $prefix    String appended before the random number of this anonymous user.
 	 */
