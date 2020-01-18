@@ -220,10 +220,11 @@ class SQRLLogin {
 	 * This function will ensure to keep the nut even if we need to retry
 	 * on the registration page if we select a email or username that is in used for instance.
 	 *
-	 * @param object $url       The complete URL we want to change in order to keep nut.
-	 * @param object $path      Path relative to the site URL.
-	 * @param object $scheme    Scheme to give the site URL context. Accepts 'http', 'https', 'login', 'login_post', 'admin', or 'relative'.
-	 * @param object $blog_id   Site ID. Default null (current site).
+	 * @param string      $url       The complete URL we want to change in order to keep nut.
+	 * @param string      $path      Path relative to the site URL.
+	 * @param string|null $scheme    Scheme to give the site URL context. Accepts 'http', 'https', 'login', 'login_post', 'admin', or 'relative'.
+	 * @param int|null    $blog_id   Site ID. Default null (current site).
+	 * @return string
 	 */
 	public function keep_registration_nut( $url, $path, $scheme, $blog_id ) {
 		if ( 'login_post' === $scheme ) {
@@ -235,7 +236,7 @@ class SQRLLogin {
 	}
 
 	/**
-	 * Add the nut to the registation page in order to create a user
+	 * Add the nut to the registration page in order to create a user
 	 * that we later can associate with the identity saved under the current nut.
 	 */
 	public function add_registration_fields() {
@@ -255,11 +256,13 @@ class SQRLLogin {
 
 	/**
 	 * The last function in the chain to register a user and saving the identity
-	 * associtation on the user.
+	 * association on the user.
 	 *
-	 * @param object $user       User object to associate identity with.
+	 * @see https://developer.wordpress.org/reference/hooks/user_register/
+	 *
+	 * @param int $user_id       User ID to associate identity with.
 	 */
-	public function registration_save( $user ) {
+	public function registration_save( $user_id ) {
 		if ( empty( $_POST['nut'] ) ) {
 			return;
 		}
@@ -272,9 +275,9 @@ class SQRLLogin {
 		$session = get_transient( $nut );
 		delete_transient( $nut );
 
-		$this->associate_user( $user, $session['client'] );
+		$this->associate_user( $user_id, $session['client'] );
 
-		$session['user'] = $user;
+		$session['user'] = $user_id;
 		$session['cmd']  = self::COMMAND_LOGIN;
 
 		$nut = $this->generate_random_string();
@@ -351,7 +354,7 @@ class SQRLLogin {
 	 * Display screen in profile to associate or disassociate a SQRL login with a user
 	 * profile.
 	 *
-	 * @param object $user       User object of the associated user account.
+	 * @param WP_User $user       User object of the associated user account.
 	 */
 	public function associate_sqrl( $user ) {
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
@@ -363,14 +366,14 @@ class SQRLLogin {
 		?>
 		<h3><?php echo $sqrl_settings_title; ?></h3>
 		<?php
-		if ( get_user_meta( $user->id, 'sqrl_idk', true ) ) {
+		if ( get_user_meta( $user->ID, 'sqrl_idk', true ) ) {
 			?>
 			<table class="form-table">
 				<tr>
 					<th>
 					</th>
 					<td>
-						<?php if ( get_user_meta( $user->id, 'sqrl_hardlock', true ) ) { ?>
+						<?php if ( get_user_meta( $user->ID, 'sqrl_hardlock', true ) ) { ?>
 							<div class="sqrl-form" style="border-left: 3px solid #dc3232;">
 								<div class="sqrl-login-row"><?php echo $hardlock_disclaimer; ?></div>
 							</div>
@@ -444,7 +447,7 @@ class SQRLLogin {
 	}
 
 	/**
-	 * Function to extract the domain and lenght of path from a site url.
+	 * Function to extract the domain and length of path from a site url.
 	 */
 	public function get_domain_and_path_length() {
 		$site_url    = explode( '://', get_site_url() );
@@ -466,10 +469,10 @@ class SQRLLogin {
 	 * Add the SQRL specific code. Used both from the profile screen and the login screen to
 	 * login users or associate them with a specific account.
 	 *
-	 * @param object $user       User object of the logged in user account.
-	 * @param bool   $associated True if the user is associated with a SQRL identity.
+	 * @param WP_User $user       User object of the logged in user account.
+	 * @param bool    $associated True if the user is associated with a SQRL identity.
 	 */
-	public function add_to_login_form( $user = false, $associated = false ) {
+	public function add_to_login_form( $user = null, $associated = false ) {
 		if ( get_option( 'users_can_register' ) ) {
 			$button_label = esc_html__( 'Sign in or Register with SQRL', 'sqrl' );
 			$qrcode_label = esc_html__( 'You may also sign in or register with SQRL using any SQRL-equipped smartphone by scanning this QR code.', 'sqrl' );
@@ -500,7 +503,7 @@ class SQRLLogin {
 			set_transient(
 				$nut,
 				array(
-					'user'        => $user->id,
+					'user'        => $user->ID,
 					'ip'          => $this->get_client_ip(),
 					'redir'       => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
 					'session'     => $session,
@@ -547,7 +550,7 @@ class SQRLLogin {
 					encoded-sqrl-url="<?php echo $this->base64url_encode( $sqrl_url ); ?>"
 					tabindex="-1"
 				>
-					<img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ); ?>"/>
+					<img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ); ?>" alt=""/>
 					<div><?php echo $button_label; ?></div>
 				</a>
 			</div>
@@ -632,6 +635,8 @@ class SQRLLogin {
 			$this->only_allow_base64_url( $session_key );
 		}
 
+		$session_nut = null;
+
 		// Validate nut value.
 		// If the string is not Base64URL encoded, die here and don't process code below.
 		if ( isset( $_GET['nut'] ) ) {
@@ -673,7 +678,7 @@ class SQRLLogin {
 			wp_set_auth_cookie( $session['user'] );
 		}
 
-		$disabled = get_user_meta( $wp_users[0], 'sqrl_disable_user', true );
+		$disabled = get_user_meta( $session['user'], 'sqrl_disable_user', true );
 		if ( $disabled ) {
 			$this->logout_with_message( self::MESSAGE_DISABLED );
 		} elseif ( ! empty( $session['redir'] ) ) {
@@ -707,9 +712,9 @@ class SQRLLogin {
 	/**
 	 * Return with information to the server about the error that occured.
 	 *
-	 * @param int    $ret_val                 State of the session to display for the end user of the client.
-	 * @param bool   $client_provided_session If true the session have CPS enabled and could be redirected.
-	 * @param object $transient_session       Current session with information about user, nut and command.
+	 * @param int          $ret_val                 State of the session to display for the end user of the client.
+	 * @param bool         $client_provided_session If true the session have CPS enabled and could be redirected.
+	 * @param object|false $transient_session       Current session with information about user, nut and command.
 	 */
 	public function exit_with_error_code( $ret_val, $client_provided_session = false, $transient_session = false ) {
 		$response   = array();
@@ -812,6 +817,8 @@ class SQRLLogin {
 		 */
 		$admin_post_path = wp_parse_url( admin_url( 'admin-post.php' ), PHP_URL_PATH );
 
+		$result = false;
+
 		/**
 		 * Check the user call that we have a valid signature for the current authentication.
 		 */
@@ -832,7 +839,7 @@ class SQRLLogin {
 		}
 
 		/**
-		 * Check the user call that we have a valid pewvious if available signature for
+		 * Check the user call that we have a valid previous if available signature for
 		 * the current authentication.
 		 */
 		if ( ! empty( $client['pidk'] ) ) {
@@ -861,6 +868,7 @@ class SQRLLogin {
 		 */
 		$server_hash = sanitize_text_field( wp_unslash( $_POST['server'] ) );
 		$server_str  = explode( "\r\n", $this->base64url_decode( $server_hash ) );
+		$server = array();
 		if ( count( $server_str ) === 1 ) {
 			$server_str = substr( $server_str[0], strpos( $server_str[0], '?' ) + 1 );
 			foreach ( explode( '&', $server_str ) as $k => $v ) {
@@ -868,7 +876,6 @@ class SQRLLogin {
 				$server[ $key ]    = $val;
 			}
 		} else {
-			$server = array();
 			foreach ( $server_str as $k => $v ) {
 				list( $key, $val ) = $this->value_pair( $v );
 				$server[ $key ]    = $val;
@@ -1003,7 +1010,7 @@ class SQRLLogin {
 				}
 
 				/*
-				 * Check if we should associate an old user or create a new one. Checking if registring users
+				 * Check if we should associate an old user or create a new one. Checking if registering users
 				 * are allowed on the current installation.
 				 */
 				if ( $user ) {
@@ -1224,7 +1231,7 @@ class SQRLLogin {
 	 * SQRLOnly = Don't allow login using username and password.
 	 * Hardlock = Don't allow the user to request a password reset.
 	 *
-	 * @param object $client    Current client parameter sent from the client.
+	 * @param array  $client    Current client parameter sent from the client.
 	 * @param object $options   Options sent from the client, the options handled here are preferences for login.
 	 */
 	private function update_options( $client, $options ) {
@@ -1241,6 +1248,8 @@ class SQRLLogin {
 	 * Check if a user account is disabled.
 	 *
 	 * @param object $client   Current client parameter sent from the client.
+	 *
+	 * @return bool|mixed
 	 */
 	private function account_disabled( $client ) {
 		/*
@@ -1276,6 +1285,8 @@ class SQRLLogin {
 		$disabled = get_user_meta( $user->ID, 'sqrl_disable_user', true );
 		$sqrlonly = get_user_meta( $user->ID, 'sqrl_sqrlonly', true );
 
+		$login_url = site_url( 'wp-login.php', 'login' );
+
 		if ( '1' === $disabled && '1' === $sqrlonly ) {
 			wp_clear_auth_cookie();
 			$login_url = add_query_arg( 'message', self::MESSAGE_DISABLED, $login_url );
@@ -1296,6 +1307,8 @@ class SQRLLogin {
 	 * Code inspired by https://github.com/jaredatch/Disable-Users
 	 *
 	 * @param string $message  Original message.
+	 *
+	 * @return string
 	 */
 	public function user_login_message( $message = '' ) {
 		if ( isset( $_GET['message'] ) && self::MESSAGE_DISABLED === (int) $_GET['message'] ) {
@@ -1308,7 +1321,7 @@ class SQRLLogin {
 			$message .= '<div id="login_error">' . esc_html__( 'The only allowed login method is SQRL for this account', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_ERROR === (int) $_GET['message'] ) {
-			$message .= '<div id="login_error">' . esc_html__( 'An error occured with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
+			$message .= '<div id="login_error">' . esc_html__( 'An error occurred with the last SQRL command, please try again.', 'sqrl' ) . '</div>';
 		}
 		if ( isset( $_GET['message'] ) && self::MESSAGE_REGISTRATION_NOT_ALLOWED === (int) $_GET['message'] ) {
 			$message .= '<div id="login_error">' . esc_html__( 'The site is not allowing new registrations and your SQRL identity is not associated with any account.', 'sqrl' ) . '</div>';
@@ -1366,18 +1379,18 @@ class SQRLLogin {
 	 * Verify Unlock Key (vuk) used to verify the unlock request signature sent from the client
 	 * when an disabled account should be enabled again.
 	 *
-	 * @param object $user      User to update login keys for.
+	 * @param int    $user_id   User ID to update login keys for.
 	 * @param object $client    Current client parameter sent from the client.
 	 */
-	private function associate_user( $user, $client ) {
+	private function associate_user( $user_id, $client ) {
 		if ( ! isset( $client['idk'] ) || ! isset( $client['suk'] ) || ! isset( $client['vuk'] ) ) {
 			$this->sqrl_logging( 'Missing required parameter' );
 			$this->exit_with_error_code( self::CLIENT_FAILURE );
 		}
 
-		update_user_meta( $user, 'sqrl_idk', sanitize_text_field( $client['idk'] ) );
-		update_user_meta( $user, 'sqrl_suk', sanitize_text_field( $client['suk'] ) );
-		update_user_meta( $user, 'sqrl_vuk', sanitize_text_field( $client['vuk'] ) );
+		update_user_meta( $user_id, 'sqrl_idk', sanitize_text_field( $client['idk'] ) );
+		update_user_meta( $user_id, 'sqrl_suk', sanitize_text_field( $client['suk'] ) );
+		update_user_meta( $user_id, 'sqrl_vuk', sanitize_text_field( $client['vuk'] ) );
 	}
 
 	/**
@@ -1406,6 +1419,8 @@ class SQRLLogin {
 	 * from the system.
 	 *
 	 * @param string $idk_val    Identity key value used to lookup user id.
+	 *
+	 * @return false|mixed
 	 */
 	private function get_user_id( $idk_val ) {
 		if ( empty( $idk_val ) ) {
@@ -1435,6 +1450,8 @@ class SQRLLogin {
 	 * from the system.
 	 *
 	 * @param object $client    Current client parameter sent from the client.
+	 *
+	 * @return false|mixed
 	 */
 	private function get_server_unlock_key( $client ) {
 		if ( empty( $client['idk'] ) ) {
@@ -1463,6 +1480,8 @@ class SQRLLogin {
 	 * operations like enabling and removing accounts.
 	 *
 	 * @param object $client   Current client parameter sent from the client.
+	 *
+	 * @return false|mixed
 	 */
 	private function get_verify_unlock_key( $client ) {
 		if ( empty( $client['idk'] ) ) {
@@ -1492,6 +1511,8 @@ class SQRLLogin {
 	 * in the system.
 	 *
 	 * @param string $idk_val    Identity key value used see if the account is associated with a user.
+	 *
+	 * @return bool
 	 */
 	private function account_present( $idk_val ) {
 		if ( empty( $idk_val ) ) {
@@ -1516,9 +1537,11 @@ class SQRLLogin {
 
 	/**
 	 * This function will create a random username. This will be used to create anonymous logins
-	 * when registring a new user.
+	 * when registering a new user.
 	 *
 	 * @param string $prefix    String appended before the random number of this anonymous user.
+	 *
+	 * @return string
 	 */
 	private function get_random_unique_username( $prefix = '' ) {
 		$user_exists = 1;
@@ -1541,6 +1564,8 @@ class SQRLLogin {
 	 * not allowed characters before doing a regular base64 decoding and removing any padding.
 	 *
 	 * @param string $data   Data to encode into base64 url.
+	 *
+	 * @return string
 	 */
 	private function base64url_encode( $data ) {
 		$data = str_replace( array( '+', '/' ), array( '-', '_' ), base64_encode( $data ) );
@@ -1558,6 +1583,8 @@ class SQRLLogin {
 	 * not allowed characters before doing a regular base64 decoding and removing any padding.
 	 *
 	 * @param string $data   Data to decode from base64 url.
+	 *
+	 * @return string
 	 */
 	private function base64url_decode( $data ) {
 		return base64_decode( str_replace( array( '-', '_' ), array( '+', '/' ), $data ) );
@@ -1569,6 +1596,8 @@ class SQRLLogin {
 	 * it can have multiple equal characters present but will only split on the first one.
 	 *
 	 * @param string $str   String to split into a pair.
+	 *
+	 * @return array
 	 */
 	private function value_pair( $str ) {
 		$eq_pos = strpos( $str, '=' );
