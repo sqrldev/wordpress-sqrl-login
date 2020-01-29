@@ -542,34 +542,65 @@ class SQRLLogin {
 		wp_enqueue_script( 'reload' );
 
 		?>
-		<div class="sqrl-login-wrapper">
-			<div class="sqrl-login-row">
-				<a id="sqrl"
-					class="sqrl-button"
-					href="<?php echo $sqrl_url; ?>" onclick="sqrlLinkClick(this);return true;"
-					encoded-sqrl-url="<?php echo $this->base64url_encode( $sqrl_url ); ?>"
-					tabindex="-1"
-				>
-					<img src="<?php echo plugins_url( 'images/sqrl_outline.svg', __FILE__ ); ?>" alt=""/>
-					<div><?php echo $button_label; ?></div>
-				</a>
-			</div>
-			<div class="sqrl-login-row">
-				<div id="sqrl-qrcode"></div>
-				<div><?php echo $qrcode_label; ?></div>
-			</div>
-			<div class="sqrl-login-row">
-				<span id="reloadDisplay"></span>
-			</div>
-			<div class="sqrl-login-row">
-				<a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">
-					<img src="<?php echo plugins_url( 'images/en_badge_web_generic.png', __FILE__ ); ?>" alt="Get it on Google Play" height="60" />
-				</a>
-				<a href="https://www.grc.com/files/sqrl.exe">
-					<img src="<?php echo plugins_url( 'images/microsoft.png', __FILE__ ); ?>" alt="Get it for Windows" height="42" />
-				</a>
-			</div>
-		</div>
+
+<div class="sqrl-login-row">
+	<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=" height="6">
+</div>
+
+<div class="sqrl-login-wrapper">
+	<div class="sqrl-login-row">
+		<img src="<?php echo plugins_url('images/SQRL_icon_normal_32.png', __FILE__); ?>" alt="SQRL"/> 
+	</div>
+		
+	<div class="sqrl-login-row">
+		<h3>Scan</h3>	
+	</div>
+	<div class="sqrl-login-row">
+		<div id="sqrl-qrcode">
+	</div>
+            <div><?php echo $qrcode_label; ?></div>
+        </div>
+        <div class="sqrl-login-row">
+            <span id="reloadDisplay"></span>
+        </div>
+	<div class="sqrl-login-row">
+		<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=" height="20">
+	</div>
+	<div class="sqrl-login-row">
+		<hr class="dotted1" width="100%">
+	</div>
+	<div class="sqrl-login-row">
+		<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=" height="15">
+	</div>
+	<div class="sqrl-login-row">
+		<h3>-- or Click --</h3>	
+	</div>
+	<div class="sqrl-login-row">
+		<a id="sqrl"
+		   href="<?php echo $sqrl_url; ?>" onclick="sqrlLinkClick(this);return true;"
+		   encoded-sqrl-url="<?php echo $this->base64url_encode($sqrl_url); ?>"
+		   tabindex="-1"
+		   >Sign in with SQRL
+		</a>
+	</div>
+	<div class="sqrl-login-row">
+		<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=" height="10">
+	</div>
+
+	<div class="sqrl-login-row">
+		<a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">
+			<img src="<?php echo plugins_url('images/en_badge_web_generic.png', __FILE__); ?>" alt="Get it on Google Play" height="60" />
+		</a>
+		<a href="https://www.grc.com/files/sqrl.exe">
+			<img src="<?php echo plugins_url('images/microsoft.png', __FILE__); ?>" alt="Get it for Windows" height="42" />
+		</a>
+	</div>
+</div>
+
+<div class="sqrl-login-row">
+	<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=" height="24">
+</div>
+
 		<?php
 	}
 
