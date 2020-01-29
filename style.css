@@ -24,7 +24,16 @@
 }
 
 .sqrl-login-wrapper {
-    padding-bottom: 10px;
+    padding-bottom: 5px;
+	border-style: solid;
+	padding-top: 10px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+/* Dashed hr for login */
+hr.dotted1 {
+  border-top: 1px dashed;
 }
 
 .sqrl-button {
