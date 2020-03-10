@@ -608,7 +608,7 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin = $this->createMockJustPrint();
 
     $user = new stdClass();
-    $user->ID = 1;
+    $user->id = 1;
 
     ob_start();
     $sqrlLogin->add_to_login_form( $user );
