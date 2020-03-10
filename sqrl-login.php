@@ -366,14 +366,14 @@ class SQRLLogin {
 		?>
 		<h3><?php echo $sqrl_settings_title; ?></h3>
 		<?php
-		if ( get_user_meta( $user->id, 'sqrl_idk', true ) ) {
+		if ( get_user_meta( $user->ID, 'sqrl_idk', true ) ) {
 			?>
 			<table class="form-table">
 				<tr>
 					<th>
 					</th>
 					<td>
-						<?php if ( get_user_meta( $user->id, 'sqrl_hardlock', true ) ) { ?>
+						<?php if ( get_user_meta( $user->ID, 'sqrl_hardlock', true ) ) { ?>
 							<div class="sqrl-form" style="border-left: 3px solid #dc3232;">
 								<div class="sqrl-login-row"><?php echo $hardlock_disclaimer; ?></div>
 							</div>
@@ -503,7 +503,7 @@ class SQRLLogin {
 			set_transient(
 				$nut,
 				array(
-					'user'        => $user->id,
+					'user'        => $user->ID,
 					'ip'          => $this->get_client_ip(),
 					'redir'       => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
 					'session'     => $session,
@@ -1312,8 +1312,8 @@ class SQRLLogin {
 			return;
 		}
 		// Get user meta.
-		$disabled = get_user_meta( $user->id, 'sqrl_disable_user', true );
-		$sqrlonly = get_user_meta( $user->id, 'sqrl_sqrlonly', true );
+		$disabled = get_user_meta( $user->ID, 'sqrl_disable_user', true );
+		$sqrlonly = get_user_meta( $user->ID, 'sqrl_sqrlonly', true );
 
 		$login_url = site_url( 'wp-login.php', 'login' );
 
