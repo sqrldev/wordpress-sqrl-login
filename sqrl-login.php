@@ -549,20 +549,20 @@ class SQRLLogin {
 
 <div class="sqrl-login-wrapper">
 	<div class="sqrl-login-row">
-		<img src="<?php echo plugins_url('images/SQRL_icon_normal_32.png', __FILE__); ?>" alt="SQRL"/> 
+		<img src="<?php echo plugins_url( 'images/SQRL_icon_normal_32.png', __FILE__ ); ?>" alt="SQRL"/> 
 	</div>
-		
+
 	<div class="sqrl-login-row">
 		<h3>Scan</h3>	
 	</div>
 	<div class="sqrl-login-row">
 		<div id="sqrl-qrcode">
 	</div>
-            <div><?php echo $qrcode_label; ?></div>
-        </div>
-        <div class="sqrl-login-row">
-            <span id="reloadDisplay"></span>
-        </div>
+	<div><?php echo $qrcode_label; ?></div>
+</div>
+<div class="sqrl-login-row">
+	<span id="reloadDisplay"></span>
+</div>
 	<div class="sqrl-login-row">
 		<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=" height="20">
 	</div>
@@ -577,10 +577,10 @@ class SQRLLogin {
 	</div>
 	<div class="sqrl-login-row">
 		<a id="sqrl"
-		   href="<?php echo $sqrl_url; ?>" onclick="sqrlLinkClick(this);return true;"
-		   encoded-sqrl-url="<?php echo $this->base64url_encode($sqrl_url); ?>"
-		   tabindex="-1"
-		   >Sign in with SQRL
+			href="<?php echo $sqrl_url; ?>" onclick="sqrlLinkClick( this );return true;"
+			encoded-sqrl-url="<?php echo $this->base64url_encode( $sqrl_url ); ?>"
+			tabindex="-1">
+			Sign in with SQRL
 		</a>
 	</div>
 	<div class="sqrl-login-row">
@@ -589,10 +589,10 @@ class SQRLLogin {
 
 	<div class="sqrl-login-row">
 		<a href="https://play.google.com/store/apps/details?id=org.ea.sqrl">
-			<img src="<?php echo plugins_url('images/en_badge_web_generic.png', __FILE__); ?>" alt="Get it on Google Play" height="60" />
+			<img src="<?php echo plugins_url( 'images/en_badge_web_generic.png', __FILE__ ); ?>" alt="Get it on Google Play" height="60" />
 		</a>
 		<a href="https://www.grc.com/files/sqrl.exe">
-			<img src="<?php echo plugins_url('images/microsoft.png', __FILE__); ?>" alt="Get it for Windows" height="42" />
+			<img src="<?php echo plugins_url( 'images/microsoft.png', __FILE__ ); ?>" alt="Get it for Windows" height="42" />
 		</a>
 	</div>
 </div>
@@ -600,7 +600,6 @@ class SQRLLogin {
 <div class="sqrl-login-row">
 	<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=" height="24">
 </div>
-
 		<?php
 	}
 
@@ -899,7 +898,7 @@ class SQRLLogin {
 		 */
 		$server_hash = sanitize_text_field( wp_unslash( $_POST['server'] ) );
 		$server_str  = explode( "\r\n", $this->base64url_decode( $server_hash ) );
-		$server = array();
+		$server      = array();
 		if ( count( $server_str ) === 1 ) {
 			$server_str = substr( $server_str[0], strpos( $server_str[0], '?' ) + 1 );
 			foreach ( explode( '&', $server_str ) as $k => $v ) {
