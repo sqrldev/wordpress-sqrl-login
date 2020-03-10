@@ -31,7 +31,7 @@ class SQRLLogin {
 	/**
 	 * Script version so scripts are reloaded in case of changes.
 	 */
-	const SCRIPT_VERSION = '1.2.1';
+	const SCRIPT_VERSION = '2.0.0';
 
 	/**
 	 * SQRL state values
@@ -187,8 +187,8 @@ class SQRLLogin {
 				<meta name='robots' content='noindex,noarchive' />
 				<meta name='referrer' content='strict-origin-when-cross-origin' />
 				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
 				<title><?php echo $sqrl_registration_option_title; ?></title>
+
 				<style>
 					.space {
 						margin: 20px 0 0 0;
@@ -212,8 +212,8 @@ class SQRLLogin {
 		</html>
 		<?php
 
-		wp_enqueue_style( 'style', get_site_url() . '/wp-includes/css/buttons.min.css', self::SCRIPT_VERSION, true );
-		wp_enqueue_style( 'style', get_site_url() . '/wp-admin/css/login.min.css', self::SCRIPT_VERSION, true );
+		wp_enqueue_style( 'buttons', get_site_url() . '/wp-includes/css/buttons.min.css', false, self::SCRIPT_VERSION, 'all' );
+		wp_enqueue_style( 'login', get_site_url() . '/wp-admin/css/login.min.css', false, self::SCRIPT_VERSION, 'all' );
 	}
 
 	/**
@@ -366,14 +366,14 @@ class SQRLLogin {
 		?>
 		<h3><?php echo $sqrl_settings_title; ?></h3>
 		<?php
-		if ( get_user_meta( $user->ID, 'sqrl_idk', true ) ) {
+		if ( get_user_meta( $user->id, 'sqrl_idk', true ) ) {
 			?>
 			<table class="form-table">
 				<tr>
 					<th>
 					</th>
 					<td>
-						<?php if ( get_user_meta( $user->ID, 'sqrl_hardlock', true ) ) { ?>
+						<?php if ( get_user_meta( $user->id, 'sqrl_hardlock', true ) ) { ?>
 							<div class="sqrl-form" style="border-left: 3px solid #dc3232;">
 								<div class="sqrl-login-row"><?php echo $hardlock_disclaimer; ?></div>
 							</div>
@@ -503,7 +503,7 @@ class SQRLLogin {
 			set_transient(
 				$nut,
 				array(
-					'user'        => $user->ID,
+					'user'        => $user->id,
 					'ip'          => $this->get_client_ip(),
 					'redir'       => isset( $_GET['redirect_to'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_to'] ) ) : '',
 					'session'     => $session,
@@ -1312,8 +1312,8 @@ class SQRLLogin {
 			return;
 		}
 		// Get user meta.
-		$disabled = get_user_meta( $user->ID, 'sqrl_disable_user', true );
-		$sqrlonly = get_user_meta( $user->ID, 'sqrl_sqrlonly', true );
+		$disabled = get_user_meta( $user->id, 'sqrl_disable_user', true );
+		$sqrlonly = get_user_meta( $user->id, 'sqrl_sqrlonly', true );
 
 		$login_url = site_url( 'wp-login.php', 'login' );
 

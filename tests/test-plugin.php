@@ -73,7 +73,7 @@ class PluginTest extends WP_UnitTestCase {
 
     $_GET['message'] = SQRLLogin::MESSAGE_ERROR;
     $message = $sqrlLogin->user_login_message("");
-    $this->assertEquals( '<div id="login_error">An error occured with the last SQRL command, please try again.</div>', $message );
+    $this->assertEquals( '<div id="login_error">An error occurred with the last SQRL command, please try again.</div>', $message );
 
     $_GET['message'] = SQRLLogin::MESSAGE_REGISTRATION_NOT_ALLOWED;
     $message = $sqrlLogin->user_login_message("");
@@ -608,7 +608,7 @@ class PluginTest extends WP_UnitTestCase {
     $sqrlLogin = $this->createMockJustPrint();
 
     $user = new stdClass();
-    $user->id = 1;
+    $user->ID = 1;
 
     ob_start();
     $sqrlLogin->add_to_login_form( $user );
