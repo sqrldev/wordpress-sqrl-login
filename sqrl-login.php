@@ -1471,7 +1471,7 @@ class SQRLLogin {
 			return false;
 		}
 
-		return $wp_users[0];
+		return (int) $wp_users[0];
 	}
 
 	/**
