@@ -160,6 +160,9 @@ class SQRLLogin {
 			return;
 		}
 
+		wp_enqueue_style( 'buttons', get_site_url() . '/wp-includes/css/buttons.min.css', false, self::SCRIPT_VERSION, 'all' );
+		wp_enqueue_style( 'login', get_site_url() . '/wp-admin/css/login.min.css', false, self::SCRIPT_VERSION, 'all' );
+
 		// Validate session value
 		// If the string is not Base64URL encoded, die here and don't process code below.
 		$nut = sanitize_text_field( wp_unslash( $_GET['nut'] ) );
@@ -189,6 +192,8 @@ class SQRLLogin {
 				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 				<title><?php echo $sqrl_registration_option_title; ?></title>
 
+				<?php print_admin_styles(); ?>
+
 				<style>
 					.space {
 						margin: 20px 0 0 0;
@@ -211,9 +216,6 @@ class SQRLLogin {
 			</body>
 		</html>
 		<?php
-
-		wp_enqueue_style( 'buttons', get_site_url() . '/wp-includes/css/buttons.min.css', false, self::SCRIPT_VERSION, 'all' );
-		wp_enqueue_style( 'login', get_site_url() . '/wp-admin/css/login.min.css', false, self::SCRIPT_VERSION, 'all' );
 	}
 
 	/**
