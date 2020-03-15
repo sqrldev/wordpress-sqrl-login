@@ -9,7 +9,7 @@
  * @author     Daniel Persson
  * @license    https://opensource.org/licenses/MIT MIT
  * @link       http://danielpersson.dev
- * @version    2.0.0
+ * @version    2.1.0
  */
 
 /**
@@ -18,7 +18,7 @@
  * @wordpress-plugin
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           2.0.0
+ * Version:           2.1.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -31,7 +31,7 @@ class SQRLLogin {
 	/**
 	 * Script version so scripts are reloaded in case of changes.
 	 */
-	const SCRIPT_VERSION = '2.0.0';
+	const SCRIPT_VERSION = '2.1.0';
 
 	/**
 	 * SQRL state values
