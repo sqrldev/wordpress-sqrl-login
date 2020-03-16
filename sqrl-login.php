@@ -9,7 +9,7 @@
  * @author     Daniel Persson
  * @license    https://opensource.org/licenses/MIT MIT
  * @link       http://danielpersson.dev
- * @version    2.0.0
+ * @version    2.1.0
  */
 
 /**
@@ -18,7 +18,7 @@
  * @wordpress-plugin
  * Plugin Name:       SQRL Login
  * Description:       Login and Register your users using SQRL
- * Version:           2.0.0
+ * Version:           2.1.0
  * Author:            Daniel Persson
  * Author URI:        http://danielpersson.dev
  * Text Domain:       sqrl
@@ -31,7 +31,7 @@ class SQRLLogin {
 	/**
 	 * Script version so scripts are reloaded in case of changes.
 	 */
-	const SCRIPT_VERSION = '2.0.0';
+	const SCRIPT_VERSION = '2.1.0';
 
 	/**
 	 * SQRL state values
@@ -160,6 +160,9 @@ class SQRLLogin {
 			return;
 		}
 
+		wp_enqueue_style( 'buttons', get_site_url() . '/wp-includes/css/buttons.min.css', false, self::SCRIPT_VERSION, 'all' );
+		wp_enqueue_style( 'login', get_site_url() . '/wp-admin/css/login.min.css', false, self::SCRIPT_VERSION, 'all' );
+
 		// Validate session value
 		// If the string is not Base64URL encoded, die here and don't process code below.
 		$nut = sanitize_text_field( wp_unslash( $_GET['nut'] ) );
@@ -189,6 +192,8 @@ class SQRLLogin {
 				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 				<title><?php echo $sqrl_registration_option_title; ?></title>
 
+				<?php print_admin_styles(); ?>
+
 				<style>
 					.space {
 						margin: 20px 0 0 0;
@@ -211,9 +216,6 @@ class SQRLLogin {
 			</body>
 		</html>
 		<?php
-
-		wp_enqueue_style( 'buttons', get_site_url() . '/wp-includes/css/buttons.min.css', false, self::SCRIPT_VERSION, 'all' );
-		wp_enqueue_style( 'login', get_site_url() . '/wp-admin/css/login.min.css', false, self::SCRIPT_VERSION, 'all' );
 	}
 
 	/**

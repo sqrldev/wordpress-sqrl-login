@@ -42,6 +42,11 @@ Special thanks to:
 
 == Changelog ==
 
+Version 2.1.0
+
+* Changed login page design to make it clearer for new users.
+* Fixing registration selection page style.
+
 Version 2.0.0
 
 * Multiple changes when introducing a test suite testing all vital paths.
