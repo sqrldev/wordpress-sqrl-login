@@ -3,7 +3,7 @@ Contributors: kalaspuffar
 Tags: sqrl, login
 Donate link: http://ko-fi.com/danielpersson
 Requires at least: 5.2.2
-Tested up to: 5.3
+Tested up to: 5.9.1
 Requires PHP: 7.2
 Stable tag: trunk
 License: MIT
