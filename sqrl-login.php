@@ -689,11 +689,13 @@ class SQRLLogin {
 				$this->logout_with_message( self::MESSAGE_REMOVED );
 			}
 		}
-		if ( self::MESSAGE_REGISTRATION_NOT_ALLOWED === $session['err'] ) {
-			$this->logout_with_message( self::MESSAGE_REGISTRATION_NOT_ALLOWED );
-		}
-		if ( self::MESSAGE_ERROR === $session['err'] ) {
-			$this->logout_with_message( self::MESSAGE_ERROR );
+		if (isset($session['err'])) {
+			if ( self::MESSAGE_REGISTRATION_NOT_ALLOWED === $session['err'] ) {
+				$this->logout_with_message( self::MESSAGE_REGISTRATION_NOT_ALLOWED );
+			}
+			if ( self::MESSAGE_ERROR === $session['err'] ) {
+				$this->logout_with_message( self::MESSAGE_ERROR );
+			}
 		}
 
 		if ( self::COMMAND_REGISTER === $session['cmd'] ) {
